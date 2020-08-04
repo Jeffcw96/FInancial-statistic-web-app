@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <script src="/static/script.js"></script>
+</head>
+
+<body>
+    <section class="intro">
+        <div>
+            <div class="main-selection">
+                <h1>HOW WAS YOUR DAY ! ! !</h1>
+            </div>
+            <div class="button-wrap">
+                <button class="primary-button" href="#addSectionId">ADD</button>
+                <button class="secondary-button">CHECK</button>
+            </div>
+        </div>
+        <div class="bubble bubble-big"></div>
+        <div class="bubble bubble-med"></div>
+        <div class="bubble bubble-sm"></div>
+    </section>
+
+    <section class="addSection" id="addSectionId">
+        <div class="add-section-heading">
+            <h2 class="add">Add</h2>
+            <div class="time">
+                <h2 id="date">2020-6-11 </h2>
+                <h2 id="time">09:11:40</h2>
+            </div>
+        </div>
+        <div class="container-wrap" id="containerWrap">
+            <div class="container save-container fold" onclick="selectAction(this)">
+                <div class="save" style="background:#ffeaa7; cursor: pointer;">
+                    <h3>Add your salary amount here !</h3>
+                    <img src="/static/images/save.png" alt="save money" width=100px class="piggy-bank">
+                    <label for="saveAmount" style="font-weight:bold;">RM >></label>
+                    <input type=number id="saveAmount" placeholder="Enter your saving here">
+                    <div style="text-align: right; padding:0 10px 5px 0;">
+                        <button class="primary-button" style="padding:5px 10px; font-size:1rem; margin:0;"
+                            onclick="promptUserActionSubmit('submitSaving')">Submit</button>
+                    </div>
+                </div>
+            </div>
+            <div class="container expenses-option-container ">
+                <div class="action " style="background: #9AECDB;cursor: pointer;">
+                    <div class=" exp-title">
+                        <h3>Daily Expenses</h3>
+                        <h4 id="editOption" onclick="selectAction(this)">EDIT</h4>
+                    </div>
+                    <div id="expensesOption"></div>
+                    <!-- This add option feature will be append in javascript after list out all category -->
+                    <div class="option add-option">
+                        <input type="text" placeholder="Enter New Category" class="create-option"
+                            id="expensesOptionInput">
+                        <img src="/static/images/tick.png" alt="create new option" width=25
+                            onclick="popUpExpensesOptionModal('open')">
+                    </div>
+                </div>
+                <div class="total-expenses-container">
+                    <h3>TOTAL: RM <span id="totalCost">0.00</span></h3>
+
+                </div>
+            </div>
+        </div>
+        <div class="fly-animation-container">
+            <div class="fly-animation">
+                <img src="/static/images/fly.gif" width="200px">
+            </div>
+        </div>
+        <div style="text-align: right; margin-right: 10%;">
+            <button class="primary-button" onclick="promptUserActionSubmit('submitExpenses')">Submit</button>
+            <button class="secondary-button" onclick="promptUserActionSubmit('reset')">Reset</button>
+        </div>
+        <div id="popUpModal" class="modal">
+            <div style="width:50%; margin:25% auto 0">
+                <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2>This action cannot be undone</h2>
+                </div>
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p id="savingDescription" style="display: none;">Your saving submited is RM >> <span
+                            id="submitValue"></span></p>
+                    <p id="totalCostDescription" style="display:none;">Your total cost for today is RM >> <span
+                            id="submitExpenses"></span></p>
+                    <p id="resetValueDescription" style="display:none;">All expenses value will be reset</p>
+                    <div style="text-align: right; margin-right: 10%;">
+                        <button class="ok-btn" onclick="executeUserAction(this)" id="ok">OK</button>
+                        <button class="cancel-btn" onclick="promptUserActionSubmit('cancel')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="expensesOptionModal" class="modal">
+            <div class="modal-content expenses-modal-content">
+                <span class="close" style="color: black;">&times;</span>
+                <p id="expensesOptionMessage"></p>
+                <div style="text-align: right; margin:5vh 10px 0 0">
+                    <button id="addOptionBtn" class="btn ok-btn" onclick="addExpensesOption(this)">OK</button>
+                    <button id="delOptionBtn" class="btn del-btn" onclick="deleteExpensesOption(this)">Please
+                        Proceed</button>
+                    <button class="cancel-btn" onclick="popUpExpensesOptionModal('cancel')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>
