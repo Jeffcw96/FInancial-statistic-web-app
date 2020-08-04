@@ -28,6 +28,7 @@ func main() {
 	r.HandleFunc("/addSaving", AddMonthlySaving).Methods("POST")
 	r.HandleFunc("/addExpenses", AddDailyExpenses).Methods("POST")
 	r.HandleFunc("/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")
+	r.HandleFunc("/deleteExpensesOption/{id}", cms.DeleteExpensesOption).Methods("POST")
 	r.HandleFunc("/readExpensesObject", cms.ReadExpensesObject).Methods("GET")
 
 	corsOpts := cors.New(cors.Options{

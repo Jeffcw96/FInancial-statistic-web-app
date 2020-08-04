@@ -304,7 +304,9 @@ function popUpExpensesOptionModal(action, e = "") {
             console.log("current option 123", currentOption);
             expensesOptionMessage.innerHTML = `delete ${currentOption.innerText} from expenses option ?`;
             delOptionBtn.style.display = "inline-block";
+            delOptionBtn.setAttribute("optionId", e.getAttribute("optionId"));
             addOptionBtn.style.display = "none";
+
         }
     } else if (action == "cancel") {
         document.getElementById("expensesOptionModal").style.display = "none";
@@ -355,7 +357,7 @@ function getExpensesOption() {
                 expensesContainer.setAttribute("onclick", "handleOption(this)")
                 expensesContainer.classList.add("option");
 
-                expensesContainer.innerHTML = `<img src="/static/images/delete.svg" width=30 class="delete-icon" onclick="popUpExpensesOptionModal('edit',this)">
+                expensesContainer.innerHTML = `<img src="/static/images/delete.svg" width=30 class="delete-icon" onclick="popUpExpensesOptionModal('edit',this)" optionId="${result[i].id}">
                                                <input type="radio" id="${result[i].name.toLowerCase()}" name="expense" value="${result[i].name.toLowerCase()}">
                                                <label for="${result[i].name.toLowerCase()}">${capitalizeWord(result[i].name)}</label>
                                                <div class="selected"></div>
@@ -366,7 +368,24 @@ function getExpensesOption() {
         })
 }
 
+function deleteExpensesOption(e) {
 
+    var optionId = e.getAttribute("optionId");
+    console.log("option id", optionId);
+    var url = host + "deleteExpensesOption/" + optionId;
+    defaultFetchParam.body = JSON.stringify("");
+
+    fetch(url, defaultFetchParam)
+        .then((response) => {
+            return response.json();
+        })
+        .then((result) => {
+            console.log("result succesfull ?", result);
+            document.getElementById("expensesOptionModal").style.display = "none";
+            getExpensesOption();
+        })
+
+}
 
 function capitalizeWord(word) {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();

@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -101,4 +102,28 @@ func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(expensesOptionArr)
+}
+
+func DeleteExpensesOption(w http.ResponseWriter, r *http.Request) {
+
+	v := mux.Vars(r)
+	optionId := v["id"]
+
+	getAllOptions, _ := db.Client.HGetAll("expenses:option").Result()
+
+	for id, _ := range getAllOptions {
+		if id == optionId {
+			db.Client.HDel("expenses:option", id)
+			db.Client.Del("expenses:option:" + id)
+		}
+	}
+
+	fmt.Println("optionId", optionId)
+	response := ResponseStatus{}
+	response.Status = "00"
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
 }
