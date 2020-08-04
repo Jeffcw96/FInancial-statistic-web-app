@@ -1,7 +1,7 @@
 # FInancial-statistic-web-app
 ---
 #This is my very first full stack web app
-**Skills included** - HTML,CSS,Javascript,Golang,Redis
+-**Skills included** - HTML,CSS,Javascript,Golang,Redis
 
 4/8/2020
 -This app-lication is used to record user daily expenses and monthly salary.
