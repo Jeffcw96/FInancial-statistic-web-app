@@ -120,7 +120,7 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db.Client.HMSet("expenses:"+month+":"+date, hm)
-
+	db.Client.LPush("expenses:"+month+":all", date)
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"
 	w.Header().Set("Content-type", "application/json; charset=UTF-8")

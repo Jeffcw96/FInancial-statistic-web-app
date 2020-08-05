@@ -78,14 +78,14 @@
             <button class="secondary-button" onclick="promptUserActionSubmit('reset')">Reset</button>
         </div>
         <div id="popUpModal" class="modal">
-            <div style="width:50%; margin:25% auto 0">
+            <div style="width:50%; margin:20% auto 0">
                 <div class="modal-header">
-                    <span class="close">&times;</span>
+                    <span class="close" onclick="closePopUpModal()">&times;</span>
                     <h2>This action cannot be undone</h2>
                 </div>
                 <!-- Modal content -->
                 <div class="modal-content">
-                    <span class="close">&times;</span>
+                    <span class="close" onclick="closePopUpModal()">&times;</span>
                     <p id="savingDescription" style="display: none;">Your saving submited is RM >> <span
                             id="submitValue"></span></p>
                     <p id="totalCostDescription" style="display:none;">Your total cost for today is RM >> <span
@@ -100,7 +100,7 @@
         </div>
         <div id="expensesOptionModal" class="modal">
             <div class="modal-content expenses-modal-content">
-                <span class="close" style="color: black;">&times;</span>
+                <span class="close" style="color: black;" onclick="closeExpensesOptionModal()">&times;</span>
                 <p id="expensesOptionMessage"></p>
                 <div style="text-align: right; margin:5vh 10px 0 0">
                     <button id="addOptionBtn" class="btn ok-btn" onclick="addExpensesOption(this)">OK</button>

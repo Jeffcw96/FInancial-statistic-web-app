@@ -64,7 +64,6 @@ function selectAction(e) {
 }
 
 function handleOption(e) {
-
     var focus = e.id;
     var selectedOptionExpensesTitle = e.getElementsByTagName("label");
     var getSelectedOption = e.getAttribute("data-option");
@@ -252,14 +251,12 @@ function executeUserAction(e) {
         var foodExpenses = document.getElementById("foodOption").getAttribute("currentCost");
         var transportExpenses = document.getElementById("transportOption").getAttribute("currentCost");
         var entertainmentExpenses = document.getElementById("entertainmentOption").getAttribute("currentCost");
-        var loanExpenses = document.getElementById("loanOption").getAttribute("currentCost");
         var familyExpenses = document.getElementById("familyOption").getAttribute("currentCost");
         var expenses = {};
         expenses.food = parseFloat(foodExpenses);
         expenses.transport = parseFloat(transportExpenses);
         expenses.entertainment = parseFloat(entertainmentExpenses);
         expenses.family = parseFloat(familyExpenses);
-        expenses.loanExpenses = parseFloat(loanExpenses);
 
         defaultFetchParam.body = JSON.stringify(expenses)
         var url = host + "addExpenses"
@@ -389,4 +386,12 @@ function deleteExpensesOption(e) {
 
 function capitalizeWord(word) {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+function closeExpensesOptionModal() {
+    document.getElementById("expensesOptionModal").style.display = "none";
+}
+
+function closePopUpModal() {
+    document.getElementById("popUpModal").style.display = "none";
 }
