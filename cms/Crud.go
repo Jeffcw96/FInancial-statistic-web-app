@@ -13,6 +13,17 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+type ReportStatistic struct {
+	Jul []StatisticData `json:"jul"`
+	Aug []StatisticData `json:"aug"`
+}
+
+type StatisticData struct {
+	ExpensesInfo []ExpensesString `json:"expensesInfo"`
+	TotalPrice   float64          `json:"totalPrice"`
+	Date         string           `json:"date"`
+}
+
 type AllExpensesOption struct {
 	Expenses []ExpensesOption `json:"expenses"`
 }
@@ -35,6 +46,14 @@ type Expenses struct {
 	Entertainment float64 `json:"entertainment,omitempty"`
 	Loan          float64 `json:"loan,omitempty"`
 	Family        float64 `json:"family,omitempty"`
+}
+
+type ExpensesString struct {
+	Food          string `json:"food"`
+	Transport     string `json:"transport"`
+	Entertainment string `json:"entertainment"`
+	Loan          string `json:"loan"`
+	Family        string `json:"family"`
 }
 
 type ResponseStatus struct {

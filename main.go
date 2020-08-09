@@ -12,6 +12,7 @@ import (
 
 	"goAgain/cms"
 	"goAgain/db"
+	"goAgain/statistic"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -21,7 +22,6 @@ import (
 var templates *template.Template
 
 func main() {
-
 	templates = template.Must(template.ParseGlob("template/*.html"))
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", indexHandler).Methods("GET")
@@ -30,13 +30,12 @@ func main() {
 	r.HandleFunc("/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")
 	r.HandleFunc("/deleteExpensesOption/{id}", cms.DeleteExpensesOption).Methods("POST")
 	r.HandleFunc("/readExpensesObject", cms.ReadExpensesObject).Methods("GET")
+	r.HandleFunc("/getFinancialStatistic", statistic.GetFinancialStatistic).Methods("GET")
 
 	corsOpts := cors.New(cors.Options{
-		AllowedOrigins:     []string{"*"},
-		AllowedMethods:     []string{"GET", "POST", "HEAD", "OPTIONS", "PUT"},
-		AllowCredentials:   true,
-		AllowedHeaders:     []string{"Content-Type", "Access-Control-Allow-Origin"},
-		OptionsPassthrough: true,
+		AllowedOrigins: []string{"*"},                                     //Because now we are using the same port and domain, so it does not really matter
+		AllowedMethods: []string{"GET", "POST", "HEAD", "OPTIONS", "PUT"}, // specify what method are allows
+		AllowedHeaders: []string{"Content-Type", "Access-Control-Allow-Origin", "X-Requested-With", "Authorization"},
 	})
 	fs := http.FileServer(http.Dir("./static/"))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
@@ -96,6 +95,8 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 	getMonthDateSplit := strings.Split(monthAndDate, "-")
 	month := getMonthDateSplit[1]
 	date := getMonthDateSplit[2]
+	m := make(map[string]interface{})
+	m[date] = 1
 
 	hm := make(map[string]interface{})
 
@@ -120,7 +121,7 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db.Client.HMSet("expenses:"+month+":"+date, hm)
-	db.Client.LPush("expenses:"+month+":all", date)
+	db.Client.HMSet("expenses:"+month+":all", m)
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"
 	w.Header().Set("Content-type", "application/json; charset=UTF-8")
