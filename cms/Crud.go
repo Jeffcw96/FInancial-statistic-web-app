@@ -6,8 +6,11 @@ import (
 	"goAgain/db"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"sort"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
@@ -29,8 +32,10 @@ type AllExpensesOption struct {
 }
 
 type ExpensesOption struct {
-	Name string `json:"name"`
-	Id   int32  `json:"id"`
+	Name          string `json:"name"`
+	Id            int32  `json:"id"`
+	CurrentValue  string `json:"currentValue"`
+	CurrentRemark string `json:"currentRemark"`
 }
 
 //Salary struct
@@ -40,14 +45,18 @@ type Salary struct {
 }
 
 //Expenses struct
-type Expenses struct {
-	Food          float64 `json:"food,omitempty"`
-	Transport     float64 `json:"transport,omitempty"`
-	Entertainment float64 `json:"entertainment,omitempty"`
-	Loan          float64 `json:"loan,omitempty"`
-	Family        float64 `json:"family,omitempty"`
+type ExpensesInfo struct {
+	ExpensesOption string  `json:"expensesOption,omitempty"`
+	ExpensesValue  float64 `json:"expensesValue,omitempty"`
+	ExpensesRemark string  `json:"expensesRemark,omitempty"`
 }
 
+//Expenses Arr struct
+type ExpensesArr struct {
+	AllExpenses []ExpensesInfo `json:"allExpenses"`
+}
+
+//This need to be changed
 type ExpensesString struct {
 	Food          string `json:"food"`
 	Transport     string `json:"transport"`
@@ -93,8 +102,10 @@ func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {
+	month, date := GenerateMonthAndDate()
 
 	getAllExpensesOption, _ := db.Client.HGetAll("expenses:option").Result()
+	getTodayExpensesValue := db.Client.HGetAll("expenses:" + month + ":" + date).Val()
 
 	expensesOptionArr := []ExpensesOption{}
 	for k, v := range getAllExpensesOption {
@@ -104,8 +115,21 @@ func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {
 
 		hm["id"], _ = strconv.ParseInt(k, 10, 32)
 		hm["name"] = v
-		expensesOption := ExpensesOption{}
 
+		for expensesObject, expensesVal := range getTodayExpensesValue {
+			fmt.Println("expensesVal", expensesVal)
+			fmt.Println("object", expensesObject)
+			if strings.ToLower(expensesObject) == strings.ToLower(v) {
+				fmt.Println("FOund !!!")
+				hm["currentValue"] = expensesVal
+				hm["currentRemark"] = getTodayExpensesValue["R-"+strings.ToLower(expensesObject)]
+			}
+			fmt.Println("type of v", reflect.TypeOf(v))
+			fmt.Println("string object", reflect.TypeOf(strings.ToLower(expensesObject)))
+			fmt.Println("string v", reflect.TypeOf(strings.ToLower(v)))
+			fmt.Println(reflect.TypeOf(expensesObject))
+		}
+		expensesOption := ExpensesOption{}
 		_ = mapstructure.Decode(hm, &expensesOption)
 		fmt.Println("&expensesOption", &expensesOption)
 		expensesOptionArr = append(expensesOptionArr, expensesOption)
@@ -145,4 +169,12 @@ func DeleteExpensesOption(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 
+}
+
+func GenerateMonthAndDate() (string, string) {
+	monthAndDate := time.Now().Format("2006-Jan-02")
+	getMonthDateSplit := strings.Split(monthAndDate, "-")
+	month := getMonthDateSplit[1]
+	date := getMonthDateSplit[2]
+	return month, date
 }

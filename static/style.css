@@ -308,7 +308,7 @@ input[type=number] {
 }
 
 #keyInContainer{
-    margin:30px 0;
+    margin:30px 0 0;
 }
 
 #keyInContainer label{
@@ -362,6 +362,10 @@ input[type=number] {
     display:block;
 }
 
+.active{
+    display:block !important;
+}
+
 .inline-block{
     display:inline-block;
 }
@@ -387,6 +391,11 @@ input[type=number] {
     left: 30%;
     display: none;
 }
+
+.second-baby{
+    color: red;
+}
+
 
 .modal {
     display: none; /* Hidden by default */
@@ -508,4 +517,18 @@ input[type=number] {
     padding: 10px;
     border: 1px solid #888;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+textarea {
+    resize: none;
+}
+
+.monthly-report-container{
+    max-width: 80vw;
+    margin:5vh auto;
+}
+
+.expenses-summary{
+    max-width: 60vw;
+    margin:10vh auto 0 auto;
 }

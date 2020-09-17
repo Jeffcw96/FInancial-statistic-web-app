@@ -6,15 +6,16 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"reflect"
 	"strings"
 	"text/template"
-	"time"
 
 	"goAgain/cms"
 	"goAgain/db"
 	"goAgain/statistic"
 
 	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
 	"github.com/rs/cors"
 )
 
@@ -22,15 +23,18 @@ import (
 var templates *template.Template
 
 func main() {
+
 	templates = template.Must(template.ParseGlob("template/*.html"))
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", indexHandler).Methods("GET")
+	r.HandleFunc("/second", SecondFunction).Methods("GET")
 	r.HandleFunc("/addSaving", AddMonthlySaving).Methods("POST")
 	r.HandleFunc("/addExpenses", AddDailyExpenses).Methods("POST")
 	r.HandleFunc("/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")
 	r.HandleFunc("/deleteExpensesOption/{id}", cms.DeleteExpensesOption).Methods("POST")
 	r.HandleFunc("/readExpensesObject", cms.ReadExpensesObject).Methods("GET")
 	r.HandleFunc("/getFinancialStatistic", statistic.GetFinancialStatistic).Methods("GET")
+	r.HandleFunc("/generateExpensesSummary/{month}", statistic.GenerateExpensesSummary).Methods("GET")
 
 	corsOpts := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},                                     //Because now we are using the same port and domain, so it does not really matter
@@ -59,15 +63,14 @@ func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(jsonFeed), &salary)
 	fmt.Println("salary", salary)
 
-	monthAndDate := time.Now().Format("2006-Jan-02")
-	getSalaryMonth := strings.Split(monthAndDate, "-")
-	fmt.Println(getSalaryMonth[1])
+	month, _ := cms.GenerateMonthAndDate()
+
 	m := make(map[string]interface{})
 	m["saving"] = salary.Saving
-	m["month"] = getSalaryMonth[1]
+	m["month"] = month
 	fmt.Println("m", m)
 
-	db.Client.HMSet("saving:"+getSalaryMonth[1], m)
+	db.Client.HMSet("saving:"+month, m)
 
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"
@@ -85,46 +88,31 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("nil", nil)
 	}
 
-	dailyExpenses := cms.Expenses{}
+	dailyExpenses := cms.ExpensesArr{}
 	json.Unmarshal([]byte(jsonFeed), &dailyExpenses)
 	fmt.Println("daily Expenses 666", dailyExpenses)
-	totalDailyCost := dailyExpenses.Food + dailyExpenses.Entertainment + dailyExpenses.Transport
+	month, date := cms.GenerateMonthAndDate()
+	for _, expensesData := range dailyExpenses.AllExpenses {
+		expensesInfo := cms.ExpensesInfo{}
+		_ = mapstructure.Decode(expensesData, &expensesInfo)
 
-	fmt.Println("total dailly cost >>", totalDailyCost)
-	monthAndDate := time.Now().Format("2006-Jan-02")
-	getMonthDateSplit := strings.Split(monthAndDate, "-")
-	month := getMonthDateSplit[1]
-	date := getMonthDateSplit[2]
-	m := make(map[string]interface{})
-	m[date] = 1
+		fmt.Println("expenses Info", expensesInfo)
+		fmt.Println("type of expenses value", reflect.TypeOf(expensesData.ExpensesValue))
+		db.Client.HSet("expenses:"+month+":"+date, expensesData.ExpensesOption, expensesData.ExpensesValue)
+		db.Client.HSet("expenses:"+month+":"+date, "R-"+strings.ToLower(expensesData.ExpensesOption), expensesData.ExpensesRemark)
+	}
 
 	hm := make(map[string]interface{})
+	hm[date] = 1
+	db.Client.HMSet("expenses:"+month+":all", hm)
 
-	if dailyExpenses.Food != 0.0 {
-		hm["food"] = dailyExpenses.Food
-	}
-
-	if dailyExpenses.Entertainment != 0.0 {
-		hm["entertainment"] = dailyExpenses.Entertainment
-	}
-
-	if dailyExpenses.Transport != 0.0 {
-		hm["transport"] = dailyExpenses.Transport
-	}
-
-	if dailyExpenses.Loan != 0.0 {
-		hm["loan"] = dailyExpenses.Loan
-	}
-
-	if dailyExpenses.Family != 0.0 {
-		hm["family"] = dailyExpenses.Family
-	}
-
-	db.Client.HMSet("expenses:"+month+":"+date, hm)
-	db.Client.HMSet("expenses:"+month+":all", m)
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"
 	w.Header().Set("Content-type", "application/json; charset=UTF-8")
 	w.WriteHeader((http.StatusOK))
 	json.NewEncoder(w).Encode(getStatus)
+}
+
+func SecondFunction(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "second.html", nil)
 }

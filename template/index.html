@@ -7,7 +7,6 @@
     <title>Financial Statistic Web App</title>
     <link rel="stylesheet" href="/static/style.css" type="text/css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <script src="/static/script.js"></script>
 </head>
 
 <body>
@@ -19,6 +18,7 @@
             <div class="button-wrap">
                 <button class="primary-button" href="#addSectionId">ADD</button>
                 <button class="secondary-button">CHECK</button>
+                <a href="/second">test</a>
             </div>
         </div>
         <div class="bubble bubble-big"></div>
@@ -111,6 +111,18 @@
             </div>
         </div>
     </section>
+    <div class="monthly-report-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <div class="expenses-summary">
+        <canvas id="expeneseSummary"></canvas>
+    </div>
+
+
 </body>
+<script src="/static/chart.min.js"></script>
+<script src="/static/script.js"></script>
+{{template "footer" .}}
 
 </html>

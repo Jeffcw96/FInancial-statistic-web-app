@@ -8,8 +8,13 @@ var defaultFetchParam = {
     },
 };
 
+var months = [];
+var expenses = [];
+var saving = [];
+
 var host = "http://localhost:8000/";
-getExpensesOption()
+getExpensesOption();
+
 setInterval(() => {
     var today = new Date();
     var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
@@ -68,6 +73,7 @@ function handleOption(e) {
     var selectedOptionExpensesTitle = e.getElementsByTagName("label");
     var getSelectedOption = e.getAttribute("data-option");
     var getCurrentSelectOptionCost = e.getAttribute("currentCost");
+    var getRemarkText = e.getAttribute("remarks");
     var generateExpensesContainer = document.createElement('div');
     var containerWrap = document.getElementById("containerWrap");
 
@@ -86,6 +92,11 @@ function handleOption(e) {
                                                 <label for="keyInAmount">RM</label>
                                                 <input type="number" id="keyInExpenses" value="${getCurrentSelectOptionCost}" step="0.01">
                                             </div>
+                                            <div style="text-align:left;padding-left:20px; margin-top:15px;" onclick="document.getElementById('remarkDetails').classList.toggle('active')">
+                                                <img src="/static/images/remark.png" alt="remark expenses" style="max-width:40px">
+                                                <span>Remarks</span>                                    
+                                            </div>
+                                            <textarea id="remarkDetails" rows="4" cols="20" style="margin:0 auto 10px; display:none;">${getRemarkText}</textarea>
                                             <div style="display: flex; justify-content: space-around;">
                                             <button type="button" class="primary-button" style="padding:5px 20px; margin:0;" id="addExpenses"
                                               optionExpenses="${getSelectedOption}"  onclick="totalExpenses(this)">OK</button>
@@ -108,6 +119,7 @@ function totalExpenses(e) {
     } else if (e.id == "addExpenses") {
         var keyInExpenses = document.getElementById("keyInExpenses");
         var getOptionExpenses = e.getAttribute("optionExpenses");
+        var remarkDetails = document.getElementById("remarkDetails");
 
         if ((keyInExpenses.value == "") || (keyInExpenses.value == undefined)) {
             console.log("empty keyinexpenses");
@@ -115,6 +127,7 @@ function totalExpenses(e) {
 
         } else {
             document.getElementById(getOptionExpenses + "Option").setAttribute("currentCost", keyInExpenses.value);
+            document.getElementById(getOptionExpenses + "Option").setAttribute("remarks", remarkDetails.value);
             var getCurrentExpensesAtt = document.querySelectorAll(".option");
             var targetPrice = 0.00;
 
@@ -246,18 +259,24 @@ function executeUserAction(e) {
             })
 
     } else if (e.getAttribute("action") == "expenses") {
+        var expensesOption = document.getElementById("expensesOption");
+        var getAllExpenses = expensesOption.querySelectorAll('.option');
+        console.log("get all expenses >>", getAllExpenses);
+        var expensesArr = [];
 
-        console.log("key in expenses")
-        var foodExpenses = document.getElementById("foodOption").getAttribute("currentCost");
-        var transportExpenses = document.getElementById("transportOption").getAttribute("currentCost");
-        var entertainmentExpenses = document.getElementById("entertainmentOption").getAttribute("currentCost");
-        var familyExpenses = document.getElementById("familyOption").getAttribute("currentCost");
+        for (let expense of getAllExpenses) {
+            var jsonExpenses = {};
+            if (expense.getAttribute("currentcost") != "" && expense.getAttribute("currentcost") != undefined) {
+                jsonExpenses.expensesOption = expense.getAttribute("data-option");
+                jsonExpenses.expensesValue = parseFloat(expense.getAttribute("currentcost"));
+                jsonExpenses.expensesRemark = expense.getAttribute("remarks");
+                expensesArr.push(jsonExpenses);
+            }
+        }
+
+        console.log("expenses Arr", expensesArr);
         var expenses = {};
-        expenses.food = parseFloat(foodExpenses);
-        expenses.transport = parseFloat(transportExpenses);
-        expenses.entertainment = parseFloat(entertainmentExpenses);
-        expenses.family = parseFloat(familyExpenses);
-
+        expenses.allExpenses = expensesArr;
         defaultFetchParam.body = JSON.stringify(expenses)
         var url = host + "addExpenses"
         console.table(expenses)
@@ -270,12 +289,11 @@ function executeUserAction(e) {
 
                 if (result.status == "00") {
                     document.getElementById("popUpModal").style.display = "none";
-                    document.getElementById("totalCost").setAttribute("data-target", "0");
                     document.getElementById("totalCost").innerHTML = "";
-                    document.getElementById("foodOption").setAttribute("currentCost", "0");
-                    document.getElementById("transportOption").setAttribute("currentCost", "0");
-                    document.getElementById("entertainmentOption").setAttribute("currentCost", "0");
-
+                    document.getElementById("totalCost").setAttribute("data-target", "0");
+                    for (let expense of getAllExpenses) {
+                        expenses.setAttribute("currentCost", "0")
+                    }
                 }
             })
 
@@ -351,6 +369,8 @@ function getExpensesOption() {
                 var expensesContainer = document.createElement("div");
                 expensesContainer.id = result[i].name.toLowerCase() + "Option"
                 expensesContainer.setAttribute("data-option", result[i].name.toLowerCase());
+                expensesContainer.setAttribute("currentcost", result[i].currentValue);
+                expensesContainer.setAttribute("remarks", result[i].currentRemark);
                 expensesContainer.setAttribute("onclick", "handleOption(this)")
                 expensesContainer.classList.add("option");
 
@@ -395,3 +415,147 @@ function closeExpensesOptionModal() {
 function closePopUpModal() {
     document.getElementById("popUpModal").style.display = "none";
 }
+
+
+function getExpensesReport() {
+    var url = host + "getFinancialStatistic";
+    fetch(url)
+        .then((response) => {
+            return response.json();
+        })
+        .then((result) => {
+            console.log("statistic data", result);
+            for (var i = 0; i < result.report.length; i++) {
+
+                months.push(result.report[i].month);
+                expenses.push(result.report[i].totalExpenses);
+                saving.push(result.report[i].saving);
+            }
+
+        })
+        .then(() => {
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var mixedChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Saving',
+                        data: saving,
+                        fill: false,
+                        borderColor: "#4DFF33",
+                        backgroundColor: "#2EFF0F"
+
+                    }, {
+                        label: 'Expenses',
+                        data: expenses,
+                        fill: false,
+                        borderColor: "#FF2C0F",
+                        backgroundColor: "#FF1F00"
+                    }],
+                    labels: months
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Month'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: '$$'
+                            }
+                        }]
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Money$$ Statistic',
+                        fontSize: 16
+                    }
+                }
+            });
+
+            document.getElementById("myChart").onclick = function (evt) {
+                var activePoints = mixedChart.getElementsAtEvent(evt);
+                console.log("activePoints", activePoints);
+                if (activePoints[0]) {
+                    var chartData = activePoints[0]['_chart'].config.data;
+                    console.log("chartData", chartData);
+
+                    var idx = activePoints[0]['_index'];
+                    var dIndex = mixedChart.getDatasetAtEvent(evt)[0]._datasetIndex;
+
+                    var label = chartData.labels[idx];
+                    var value = chartData.datasets[dIndex].data[idx];
+                    generateExpensesSummary(label)
+                    console.log("label", label, "value", value);
+
+
+                }
+            }
+        })
+}
+
+
+function generateExpensesSummary(month) {
+    var url = host + "generateExpensesSummary/" + month;
+    var expensesObject = [];
+    var expensesValue = [];
+    fetch(url)
+        .then((response) => {
+            return response.json()
+        })
+        .then((result) => {
+            console.log("result", result);
+            for (let option of result) {
+                console.log("option");
+                expensesObject.push(option.expenses);
+                expensesValue.push(option.value)
+
+            }
+            console.log("object", expensesObject);
+            console.log("value", expensesValue);
+
+        })
+        .then(() => {
+            var ctx = document.getElementById('expeneseSummary').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: expensesObject,
+                    datasets: [{
+                        backgroundColor: [
+                            "#2ecc71",
+                            "#3498db",
+                            "#95a5a6",
+                            "#9b59b6",
+                            "#f1c40f",
+                        ],
+                        data: expensesValue
+                    }]
+                }
+            });
+
+
+
+        })
+}
+
+var options = {
+    threshold: 1,
+    rootMargin: "0px 0px -100px 0px"
+}
+
+const chartObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            getExpensesReport();
+        }
+    })
+}, options);
+
+chartObserver.observe(document.getElementById("addSectionId"));
