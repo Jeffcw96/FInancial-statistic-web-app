@@ -363,7 +363,10 @@ function getExpensesOption() {
         })
         .then((result) => {
             var expensesOption = document.getElementById("expensesOption");
+            var totalCost = document.getElementById("totalCost");
+            totalCost.innerHTML = "";
             expensesOption.innerHTML = "";
+            var totalValue = 0.0;
             console.log("expenses option data", result)
             for (var i = 0; i < result.length; i++) {
                 var expensesContainer = document.createElement("div");
@@ -380,8 +383,14 @@ function getExpensesOption() {
                                                <div class="selected"></div>
                                                `
 
+                console.log(result[i].currentValue, isNaN(result[i].currentValue), typeof (result[i].currentValue));
+                if ((isNaN(result[i].currentValue) == false) && (result[i].currentValue != "0") && (result[i].currentValue != "")) {
+                    totalValue += parseFloat(result[i].currentValue);
+                }
                 expensesOption.appendChild(expensesContainer);
+                console.log("total Value", totalValue)
             }
+            totalCost.innerText = totalValue;
         })
 }
 
@@ -544,18 +553,18 @@ function generateExpensesSummary(month) {
 
         })
 }
+getExpensesReport();
+// var options = {
+//     threshold: 1,
+//     rootMargin: "0px 0px -100px 0px"
+// }
 
-var options = {
-    threshold: 1,
-    rootMargin: "0px 0px -100px 0px"
-}
+// const chartObserver = new IntersectionObserver((entries) => {
+//     entries.forEach((entry) => {
+//         if (entry.isIntersecting) {
 
-const chartObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-            getExpensesReport();
-        }
-    })
-}, options);
+//         }
+//     })
+// }, options);
 
-chartObserver.observe(document.getElementById("addSectionId"));
+// chartObserver.observe(document.getElementById("addSectionId"));
