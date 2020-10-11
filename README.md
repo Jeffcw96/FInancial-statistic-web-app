@@ -15,6 +15,7 @@ Data analysis and visualization by using **Chart.js**
 ![add expenses](/static/demo_image/addExpenses.JPG)
 
 ## Monthly Saving & Expenses line chart
+Click the point from the chart to see details data as shown in next photo
 ![monthly data](/static/demo_image/monthlyExpensesSaving.JPG)
 
 ## Pie Chart for particular month expenses
