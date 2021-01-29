@@ -13,7 +13,7 @@ var expenses = [];
 var saving = [];
 
 var host = "http://localhost:8000/";
-getExpensesOption();
+//getExpensesOption();
 
 setInterval(() => {
     var today = new Date();
@@ -362,37 +362,45 @@ function getExpensesOption() {
             return response.json()
         })
         .then((result) => {
-            var expensesOption = document.getElementById("expensesOption");
-            var totalCost = document.getElementById("totalCost");
-            totalCost.innerHTML = "";
-            expensesOption.innerHTML = "";
-            var totalValue = 0.0;
-            console.log("expenses option data", result)
-            for (var i = 0; i < result.length; i++) {
-                var expensesContainer = document.createElement("div");
-                expensesContainer.id = result[i].name.toLowerCase() + "Option"
-                expensesContainer.setAttribute("data-option", result[i].name.toLowerCase());
-                expensesContainer.setAttribute("currentcost", result[i].currentValue);
-                expensesContainer.setAttribute("remarks", result[i].currentRemark);
-                expensesContainer.setAttribute("onclick", "handleOption(this)")
-                expensesContainer.classList.add("option");
 
-                expensesContainer.innerHTML = `<img src="/static/images/delete.svg" width=30 class="delete-icon" onclick="popUpExpensesOptionModal('edit',this)" optionId="${result[i].id}">
-                                               <input type="radio" id="${result[i].name.toLowerCase()}" name="expense" value="${result[i].name.toLowerCase()}">
-                                               <label for="${result[i].name.toLowerCase()}">${capitalizeWord(result[i].name)}</label>
-                                               <div class="selected"></div>
-                                               `
-
-                console.log(result[i].currentValue, isNaN(result[i].currentValue), typeof (result[i].currentValue));
-                if ((isNaN(result[i].currentValue) == false) && (result[i].currentValue != "0") && (result[i].currentValue != "")) {
-                    totalValue += parseFloat(result[i].currentValue);
-                }
-                expensesOption.appendChild(expensesContainer);
-                console.log("total Value", totalValue)
-            }
-            totalCost.innerText = totalValue;
         })
 }
+
+(async () => {
+    let fetchExp = await fetch(host + "readExpensesObject")
+    console.log("fetchExp", fetchExp)
+    let result = await fetchExp.json()
+    console.log("fetchResponse", result)
+    var expensesOption = document.getElementById("expensesOption");
+    var totalCost = document.getElementById("totalCost");
+    totalCost.innerHTML = "";
+    expensesOption.innerHTML = "";
+    var totalValue = 0.0;
+    console.log("expenses option data", result)
+    for (var i = 0; i < result.length; i++) {
+        var expensesContainer = document.createElement("div");
+        expensesContainer.id = result[i].name.toLowerCase() + "Option"
+        expensesContainer.setAttribute("data-option", result[i].name.toLowerCase());
+        expensesContainer.setAttribute("currentcost", result[i].currentValue);
+        expensesContainer.setAttribute("remarks", result[i].currentRemark);
+        expensesContainer.setAttribute("onclick", "handleOption(this)")
+        expensesContainer.classList.add("option");
+
+        expensesContainer.innerHTML = `<img src="/static/images/delete.svg" width=30 class="delete-icon" onclick="popUpExpensesOptionModal('edit',this)" optionId="${result[i].id}">
+                                       <input type="radio" id="${result[i].name.toLowerCase()}" name="expense" value="${result[i].name.toLowerCase()}">
+                                       <label for="${result[i].name.toLowerCase()}">${capitalizeWord(result[i].name)}</label>
+                                       <div class="selected"></div>
+                                       `
+
+        console.log(result[i].currentValue, isNaN(result[i].currentValue), typeof (result[i].currentValue));
+        if ((isNaN(result[i].currentValue) == false) && (result[i].currentValue != "0") && (result[i].currentValue != "")) {
+            totalValue += parseFloat(result[i].currentValue);
+        }
+        expensesOption.appendChild(expensesContainer);
+        console.log("total Value", totalValue)
+    }
+    totalCost.innerText = totalValue;
+})()
 
 function deleteExpensesOption(e) {
 
