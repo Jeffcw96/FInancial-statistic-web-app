@@ -49,6 +49,45 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+
+	// getAllMonths := db.Client.HGetAll("expenses:month").Val()
+
+	// for labelMonth, month := range getAllMonths {
+	// 	getAllDays := db.Client.HGetAll("expenses:" + labelMonth + ":all").Val()
+
+	// 	for day, _ := range getAllDays {
+	// 		dayExp := db.Client.HGetAll("expenses:" + labelMonth + ":" + day).Val()
+	// 		setHm := make(map[string]interface{})
+	// 		for expLabel, expValue := range dayExp {
+	// 			setHm[expLabel] = expValue
+	// 		}
+
+	// 		if len(month) == 1 {
+	// 			month = "0" + month
+	// 		}
+
+	// 		db.Client.HMSet("expenses:1:2020"+month+day, setHm)
+
+	// 	}
+
+	// }
+
+	// db.Client.Incr("expenses:1:ids")
+	// setHm := make(map[string]interface{})
+	// setOption := make(map[string]interface{})
+	// getAllMonths := db.Client.HGetAll("expenses:month").Val()
+	// for labelMonth, month := range getAllMonths {
+	// 	setHm[labelMonth] = month
+	// }
+
+	// getAllOptions := db.Client.HGetAll("expenses:option").Val()
+	// for key, labelOption := range getAllOptions {
+	// 	setOption[key] = labelOption
+	// }
+
+	// db.Client.HMSet("expenses:1:months", setHm)
+	// db.Client.HMSet("expenses:1:options", setOption)
+
 	//Call the index html template
 	templates.ExecuteTemplate(w, "index.html", nil)
 }
