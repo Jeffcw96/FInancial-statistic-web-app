@@ -6,7 +6,6 @@ import (
 	"goAgain/db"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -83,15 +82,7 @@ func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 
 	optionId := db.Client.Incr("expenses:ids").Val()
 
-	hm := make(map[string]interface{})
-	hm[strconv.FormatInt(optionId, 10)] = optionName.Name
-
-	m := make(map[string]interface{})
-	m["id"] = optionId
-	m["name"] = optionName.Name
-
-	db.Client.HMSet("expenses:option:"+strconv.FormatInt(optionId, 10), m)
-	db.Client.HMSet("expenses:option", hm)
+	db.Client.HSet("expenses:1:options", strconv.FormatInt(optionId, 10), optionName.Name)
 
 	response := ResponseStatus{}
 	response.Status = "00"
@@ -102,32 +93,31 @@ func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {
-	month, date := GenerateMonthAndDate()
+	year, month, date := GenerateMonthAndDate()
 
-	getAllExpensesOption, _ := db.Client.HGetAll("expenses:option").Result()
-	getTodayExpensesValue := db.Client.HGetAll("expenses:" + month + ":" + date).Val()
+	getAllExpensesOption, _ := db.Client.HGetAll("expenses:1:options").Result()
+	getTodayExpensesValue := db.Client.HGet("expenses:1:"+year+"-"+month, date).Val()
 
 	expensesOptionArr := []ExpensesOption{}
 	for k, v := range getAllExpensesOption {
-		fmt.Println("expenses option info", v)
+		//fmt.Println("expenses option info", v)
 
 		hm := make(map[string]interface{})
 
 		hm["id"], _ = strconv.ParseInt(k, 10, 32)
 		hm["name"] = v
 
-		for expensesObject, expensesVal := range getTodayExpensesValue {
-			fmt.Println("expensesVal", expensesVal)
-			fmt.Println("object", expensesObject)
-			if strings.ToLower(expensesObject) == strings.ToLower(v) {
-				fmt.Println("FOund !!!")
-				hm["currentValue"] = expensesVal
-				hm["currentRemark"] = getTodayExpensesValue["R-"+strings.ToLower(expensesObject)]
+		expenses := make(map[string]interface{})
+		json.Unmarshal([]byte(getTodayExpensesValue), &expenses)
+
+		for object, val := range expenses {
+			//fmt.Println("expensesVal", val)
+			//fmt.Println("object", object)
+			if strings.ToLower(object) == strings.ToLower(v) {
+				//fmt.Println("FOund !!!")
+				hm["currentValue"] = val
+				hm["currentRemark"] = expenses["R-"+strings.ToLower(object)]
 			}
-			fmt.Println("type of v", reflect.TypeOf(v))
-			fmt.Println("string object", reflect.TypeOf(strings.ToLower(expensesObject)))
-			fmt.Println("string v", reflect.TypeOf(strings.ToLower(v)))
-			fmt.Println(reflect.TypeOf(expensesObject))
 		}
 		expensesOption := ExpensesOption{}
 		_ = mapstructure.Decode(hm, &expensesOption)
@@ -151,15 +141,7 @@ func DeleteExpensesOption(w http.ResponseWriter, r *http.Request) {
 
 	v := mux.Vars(r)
 	optionId := v["id"]
-
-	getAllOptions, _ := db.Client.HGetAll("expenses:option").Result()
-
-	for id, _ := range getAllOptions {
-		if id == optionId {
-			db.Client.HDel("expenses:option", id)
-			db.Client.Del("expenses:option:" + id)
-		}
-	}
+	db.Client.HDel("expenses:1:options", optionId)
 
 	fmt.Println("optionId", optionId)
 	response := ResponseStatus{}
@@ -171,10 +153,20 @@ func DeleteExpensesOption(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GenerateMonthAndDate() (string, string) {
-	monthAndDate := time.Now().Format("2006-Jan-02")
+func GenerateMonthAndDate() (string, string, string) {
+	monthAndDate := time.Now().Format("2006-01-02")
 	getMonthDateSplit := strings.Split(monthAndDate, "-")
+	year := getMonthDateSplit[0]
 	month := getMonthDateSplit[1]
 	date := getMonthDateSplit[2]
-	return month, date
+
+	if len(month) == 1 {
+		month = "0" + month
+	}
+
+	if len(date) == 1 {
+		date = "0" + date
+	}
+
+	return year, month, date
 }

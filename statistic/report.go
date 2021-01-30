@@ -34,7 +34,9 @@ type Summary struct {
 }
 
 func GetFinancialStatistic(w http.ResponseWriter, r *http.Request) {
-	getAllMonth := db.Client.HGetAll("expenses:month").Val()
+	Vars := mux.Vars(r)
+	year := strings.ToLower(Vars["year"])
+	getAllMonth := db.Client.HGetAll("expenses:1:months").Val()
 	fmt.Println(getAllMonth)
 	sortedMonth := []Month{}
 
@@ -56,16 +58,26 @@ func GetFinancialStatistic(w http.ResponseWriter, r *http.Request) {
 		getAllSaving := db.Client.HGetAll("saving:" + monthData.Month).Val()
 		fmt.Println("getAllSaving", getAllSaving)
 		fmt.Println("monthData.Month", monthData.Month)
-		getAllDate := db.Client.HGetAll("expenses:" + monthData.Month + ":all").Val()
+
+		month := strconv.FormatInt(monthData.Value, 10)
+
+		if len(month) == 1 {
+			month = "0" + month
+		}
+		fmt.Println("month", month)
+		getMonthlyExpenses := db.Client.HGetAll("expenses:1:" + year + "-" + month).Val()
+		//fmt.Println("getMonthlyExpenses", getMonthlyExpenses)
 		var totalMonthExpenses float64
 		expensesInfo := MonthlyExpenses{}
 
-		for date, _ := range getAllDate {
-			getDailyExpense := db.Client.HGetAll("expenses:" + monthData.Month + ":" + date).Val()
-			//fmt.Println("expenses:"+monthData.Month+":"+date, getDailyExpense)
-			for object, value := range getDailyExpense {
+		for _, expenses := range getMonthlyExpenses {
+			expensesMap := make(map[string]interface{})
+			json.Unmarshal([]byte(expenses), &expensesMap)
+
+			for object, value := range expensesMap {
 				if !strings.Contains(object, "R-") {
-					floatExpense, _ := strconv.ParseFloat(value, 64)
+					stringExp := fmt.Sprintf("%v", value)
+					floatExpense, _ := strconv.ParseFloat(stringExp, 64)
 					totalMonthExpenses += floatExpense
 				}
 			}
@@ -87,22 +99,32 @@ func GetFinancialStatistic(w http.ResponseWriter, r *http.Request) {
 func GenerateExpensesSummary(w http.ResponseWriter, r *http.Request) {
 	Vars := mux.Vars(r)
 	month := strings.ToLower(Vars["month"])
+	year := strings.ToLower(Vars["year"])
 	summary := Summary{}
 	summaryArr := []Summary{}
 	var totalValue float64
 
-	expensesOption := db.Client.HGetAll("expenses:option").Val()
+	monthLabel := strings.Title(month)
+	month = db.Client.HGet("expenses:1:months", monthLabel).Val()
+
+	if len(month) == 1 {
+		month = "0" + month
+	}
+
+	expensesOption := db.Client.HGetAll("expenses:1:options").Val()
 	for _, option := range expensesOption {
 		summary.Expenses = strings.ToLower(option)
 		summaryArr = append(summaryArr, summary)
 	}
 
-	getAllExpenses := db.Client.HGetAll("expenses:" + strings.Title(month) + ":all").Val()
+	getAllExpenses := db.Client.HGetAll("expenses:1:" + year + "-" + month).Val()
 	fmt.Println("getAllExpenses", getAllExpenses)
 
-	for date, _ := range getAllExpenses {
-		dailyExpenses := db.Client.HGetAll("expenses:" + strings.Title(month) + ":" + date).Val()
-		for object, value := range dailyExpenses {
+	for _, expenses := range getAllExpenses {
+		jsonExpenses := make(map[string]string)
+		json.Unmarshal([]byte(expenses), &jsonExpenses)
+
+		for object, value := range jsonExpenses {
 			for i := 0; i < len(summaryArr); i++ {
 				if summaryArr[i].Expenses == object {
 					fltValue, _ := strconv.ParseFloat(value, 64)

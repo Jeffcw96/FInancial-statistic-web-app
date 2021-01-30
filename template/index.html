@@ -113,7 +113,14 @@
     </section>
     <section id="checkSectionId">
         <div class="monthly-report-container">
-            <canvas id="myChart"></canvas>
+            <div>
+                <select onchange=getExpensesReport(this.value) id="selectYear">
+                    <option value="2021">2021</option>
+                    <option value="2020"selected>2020</option>
+                </select>
+            </div>
+            <div id="canvasContainer" style="max-height: 70vh; "></div>
+           
         </div>
 
         <div class="expenses-summary" id="expeneseSummary">

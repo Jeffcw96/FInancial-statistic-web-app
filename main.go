@@ -33,8 +33,8 @@ func main() {
 	r.HandleFunc("/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")
 	r.HandleFunc("/deleteExpensesOption/{id}", cms.DeleteExpensesOption).Methods("POST")
 	r.HandleFunc("/readExpensesObject", cms.ReadExpensesObject).Methods("GET")
-	r.HandleFunc("/getFinancialStatistic", statistic.GetFinancialStatistic).Methods("GET")
-	r.HandleFunc("/generateExpensesSummary/{month}", statistic.GenerateExpensesSummary).Methods("GET")
+	r.HandleFunc("/getFinancialStatistic/{year}", statistic.GetFinancialStatistic).Methods("GET")
+	r.HandleFunc("/generateExpensesSummary/{year}/{month}", statistic.GenerateExpensesSummary).Methods("GET")
 
 	corsOpts := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},                                     //Because now we are using the same port and domain, so it does not really matter
@@ -66,16 +66,16 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// 			month = "0" + month
 	// 		}
 
-	// 		db.Client.HMSet("expenses:1:2020"+month+day, setHm)
+	// 		jsonHm, _ := json.Marshal(setHm)
 
+	// 		db.Client.HSet("expenses:1:2020-"+month, day, jsonHm)
 	// 	}
-
 	// }
 
 	// db.Client.Incr("expenses:1:ids")
 	// setHm := make(map[string]interface{})
 	// setOption := make(map[string]interface{})
-	// getAllMonths := db.Client.HGetAll("expenses:month").Val()
+	// // getAllMonths := db.Client.HGetAll("expenses:month").Val()
 	// for labelMonth, month := range getAllMonths {
 	// 	setHm[labelMonth] = month
 	// }
@@ -102,7 +102,7 @@ func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(jsonFeed), &salary)
 	fmt.Println("salary", salary)
 
-	month, _ := cms.GenerateMonthAndDate()
+	_, month, _ := cms.GenerateMonthAndDate()
 
 	m := make(map[string]interface{})
 	m["saving"] = salary.Saving
@@ -130,20 +130,23 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 	dailyExpenses := cms.ExpensesArr{}
 	json.Unmarshal([]byte(jsonFeed), &dailyExpenses)
 	fmt.Println("daily Expenses 666", dailyExpenses)
-	month, date := cms.GenerateMonthAndDate()
+	year, month, date := cms.GenerateMonthAndDate()
+
+	expensesHash := make(map[string]interface{})
 	for _, expensesData := range dailyExpenses.AllExpenses {
 		expensesInfo := cms.ExpensesInfo{}
 		_ = mapstructure.Decode(expensesData, &expensesInfo)
 
 		fmt.Println("expenses Info", expensesInfo)
 		fmt.Println("type of expenses value", reflect.TypeOf(expensesData.ExpensesValue))
-		db.Client.HSet("expenses:"+month+":"+date, expensesData.ExpensesOption, expensesData.ExpensesValue)
-		db.Client.HSet("expenses:"+month+":"+date, "R-"+strings.ToLower(expensesData.ExpensesOption), expensesData.ExpensesRemark)
+		expensesHash[expensesData.ExpensesOption] = expensesData.ExpensesValue
+		expensesHash["R-"+strings.ToLower(expensesData.ExpensesOption)] = expensesData.ExpensesRemark
+
 	}
 
-	hm := make(map[string]interface{})
-	hm[date] = 1
-	db.Client.HMSet("expenses:"+month+":all", hm)
+	jsonHash, _ := json.Marshal(expensesHash)
+
+	db.Client.HSet("expenses:1:"+year+"-"+month, date, jsonHash)
 
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"

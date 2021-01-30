@@ -434,8 +434,9 @@ function closePopUpModal() {
 }
 
 
-function getExpensesReport() {
-    var url = host + "getFinancialStatistic";
+function getExpensesReport(year) {
+    console.log("selected year", year)
+    var url = host + "getFinancialStatistic/" + year;
     fetch(url)
         .then((response) => {
             return response.json();
@@ -451,8 +452,11 @@ function getExpensesReport() {
 
         })
         .then(() => {
-            var ctx = document.getElementById('myChart').getContext('2d');
-            var mixedChart = new Chart(ctx, {
+            document.getElementById("canvasContainer").innerHTML = "";
+
+            var salesReportCanvas = document.createElement("canvas");
+            var getSalesReportCanvas = salesReportCanvas.getContext('2d');
+            var salesReportChart = new Chart(getSalesReportCanvas, {
                 type: 'line',
                 data: {
                     datasets: [{
@@ -495,31 +499,36 @@ function getExpensesReport() {
                     }
                 }
             });
+            salesReportCanvas.style.maxHeight = "70vh";
+            salesReportCanvas.onclick = () => {
+                var activePoint = salesReportChart.getElementAtEvent(event);
+                console.log(event);
+                console.log("active point", activePoint);
 
-            document.getElementById("myChart").onclick = function (evt) {
-                var activePoints = mixedChart.getElementsAtEvent(evt);
-                console.log("activePoints", activePoints);
-                if (activePoints[0]) {
-                    var chartData = activePoints[0]['_chart'].config.data;
-                    console.log("chartData", chartData);
+                // make sure click was on an actual point
+                if (activePoint.length > 0) {
+                    var clickedDatasetIndex = activePoint[0]._datasetIndex;
+                    var clickedElementindex = activePoint[0]._index;
+                    var label = salesReportChart.data.labels[clickedElementindex];
+                    var value = salesReportChart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
+                    var selectedMonth = salesReportChart.data.labels[clickedElementindex];
 
-                    var idx = activePoints[0]['_index'];
-                    var dIndex = mixedChart.getDatasetAtEvent(evt)[0]._datasetIndex;
+                    console.log("mixedChart.data", salesReportChart.data);
+                    console.log("category >> ", salesReportChart.data.datasets[clickedDatasetIndex].label)
 
-                    var label = chartData.labels[idx];
-                    var value = chartData.datasets[dIndex].data[idx];
-                    generateExpensesSummary(label)
-                    console.log("label", label, "value", value);
-
-
+                    generateExpensesSummary(selectedMonth);
                 }
-            }
+            };
+            document.getElementById("canvasContainer").appendChild(salesReportCanvas);
         })
+
 }
 
 
 function generateExpensesSummary(month) {
-    var url = host + "generateExpensesSummary/" + month;
+    const selectYear = document.getElementById("selectYear")
+    const year = selectYear.value;
+    var url = host + "generateExpensesSummary/" + year + "/" + month;
     var expensesObject = [];
     var expensesValue = [];
     fetch(url)
@@ -564,7 +573,7 @@ function generateExpensesSummary(month) {
 
         })
 }
-getExpensesReport();
+getExpensesReport("2020");
 // var options = {
 //     threshold: 1,
 //     rootMargin: "0px 0px -100px 0px"
