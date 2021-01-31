@@ -9,56 +9,58 @@
 </head>
 <body>
     <div class="auth-page">
-        <div>
-            <label>Login <input type="radio" name="authTab" id="loginTab" class="tab-input" value="loginTab" onclick="swapTab(this)"></label>
-            <label>Register <input type="radio" name="authTab" id="registerTab" class="tab-input" value="registerTab" onclick="swapTab(this)"></label>
-        </div>
-        <div id="login" class="form-container">
-            <h2>Login</h2>
-            <div class="form-element">
-                <label>Email:</label>
-                <input type="text" id="email">
+        <div class="main">
+            <div style="position: relative;">
+                <label class="tab-label active">Login <input type="radio" name="authTab" id="loginTab" class="tab-input" value="loginTab" onclick="swapTab(this)"></label>
+                <label class="tab-label" style="left:70px">Register <input type="radio" name="authTab" id="registerTab" class="tab-input" value="registerTab" onclick="swapTab(this)"></label>
             </div>
-            <div class="form-element">
-                <label>Password:</label>
-                <input type="password" id="password">
+            <div id="login" class="form-container">
+                <h2>Login</h2>
+                <div class="form-element">
+                    <label>Email:</label>
+                    <input type="text" id="email">
+                </div>
+                <div class="form-element">
+                    <label>Password:</label>
+                    <input type="password" id="password">
+                </div>
+                <div class="form-element">
+                    <p id="errorMsg"></p>
+                </div>
+                <div class="form-btn-container">
+                    <button onclick="doLogin()">Login</button>
+                </div>
             </div>
-            <div class="form-element">
-                <p id="errorMsg"></p>
+            <div id="register" class="form-container">
+                <h2>Register</h2>
+                <div class="form-element">
+                    <label>Email:</label>
+                    <input type="text" id="r-email">
+                </div>
+                <div class="form-element">
+                    <label>Password:</label>
+                    <input type="password" id="r-password">
+                </div>
+                <div class="form-element">
+                    <label>Confirm Password:</label>
+                    <input type="password" id="r-cpassword">
+                </div>
+                <div class="form-element">
+                    <p id="r-errorMsg"></p>
+                </div>
+                <div class="form-btn-container">
+                    <button onclick="doRegister()">Register</button>
+                </div>
             </div>
-            <div class="form-btn-container">
-                <button onclick="doLogin()">Login</button>
-            </div>
-        </div>
-        <div id="register" class="form-container">
-            <h2>Register</h2>
-            <div class="form-element">
-                <label>Email:</label>
-                <input type="text" id="r-email">
-            </div>
-            <div class="form-element">
-                <label>Password:</label>
-                <input type="password" id="r-password">
-            </div>
-            <div class="form-element">
-                <label>Confirm Password:</label>
-                <input type="password" id="r-cpassword">
-            </div>
-            <div class="form-element">
-                <p id="r-errorMsg"></p>
-            </div>
-            <div class="form-btn-container">
-                <button onclick="doRegister()">Register</button>
-            </div>
-        </div>
-        <div id="forgotPassword" class="form-container">
-            <h2>Forgot Password</h2>
-            <div class="form-element">
-                <label>Id:</label>
-                <input type="text" id="f-email">
-            </div>
-            <div class="form-btn-container">
-                <button>Submit</button>
+            <div id="forgotPassword" class="form-container">
+                <h2>Forgot Password</h2>
+                <div class="form-element">
+                    <label>Id:</label>
+                    <input type="text" id="f-email">
+                </div>
+                <div class="form-btn-container">
+                    <button>Submit</button>
+                </div>
             </div>
         </div>
     </div>
@@ -153,6 +155,13 @@ function swapTab(e){
     register.classList.remove("active");
     forgotPassword.classList.remove("active");
     console.log("e",e.value)
+    tabInputs = document.querySelectorAll(".tab-input");
+
+    for (let input of tabInputs){
+        input.parentElement.classList.remove("active");
+    }
+
+    e.parentElement.classList.add("active");
 
     if(e.value =="loginTab"){
         login.classList.add("active");

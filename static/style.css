@@ -572,3 +572,15 @@ textarea {
 .tab-input{
     display: none;
 }
+
+.tab-label{
+    border: 1px solid gray;
+    padding: 15px;
+    position: absolute;
+    top: -50px;
+}
+
+
+.tab-label.active{
+    border-bottom: 1px solid white;
+}
