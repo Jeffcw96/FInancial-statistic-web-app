@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <title>Login</title>
+</head>
+<body>
+    <div class="auth-page">
+        <div>
+            <label>Login <input type="radio" name="authTab" id="loginTab" class="tab-input" value="loginTab" onclick="swapTab(this)"></label>
+            <label>Register <input type="radio" name="authTab" id="registerTab" class="tab-input" value="registerTab" onclick="swapTab(this)"></label>
+        </div>
+        <div id="login" class="form-container">
+            <h2>Login</h2>
+            <div class="form-element">
+                <label>Email:</label>
+                <input type="text" id="email">
+            </div>
+            <div class="form-element">
+                <label>Password:</label>
+                <input type="password" id="password">
+            </div>
+            <div class="form-element">
+                <p id="errorMsg"></p>
+            </div>
+            <div class="form-btn-container">
+                <button onclick="doLogin()">Login</button>
+            </div>
+        </div>
+        <div id="register" class="form-container">
+            <h2>Register</h2>
+            <div class="form-element">
+                <label>Email:</label>
+                <input type="text" id="r-email">
+            </div>
+            <div class="form-element">
+                <label>Password:</label>
+                <input type="password" id="r-password">
+            </div>
+            <div class="form-element">
+                <label>Confirm Password:</label>
+                <input type="password" id="r-cpassword">
+            </div>
+            <div class="form-element">
+                <p id="r-errorMsg"></p>
+            </div>
+            <div class="form-btn-container">
+                <button onclick="doRegister()">Register</button>
+            </div>
+        </div>
+        <div id="forgotPassword" class="form-container">
+            <h2>Forgot Password</h2>
+            <div class="form-element">
+                <label>Id:</label>
+                <input type="text" id="f-email">
+            </div>
+            <div class="form-btn-container">
+                <button>Submit</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+var defaultFetchParam = {
+    method: 'POST',
+    mode: 'cors',
+    cache: 'no-cache',
+    headers: {
+        "Content-Type": "application/json",
+    },
+};
+
+var host = "http://localhost:8000/auth/";
+
+const login = document.getElementById("login");
+const register = document.getElementById("register");
+const forgotPassword = document.getElementById("forgotPassword");
+const email = document.getElementById("email");
+const rEmail = document.getElementById("r-email");
+const fEmail = document.getElementById("f-email");
+const password = document.getElementById("password");
+const rPassword = document.getElementById("r-password");
+const rConfirmPassword = document.getElementById("r-cpassword");
+const rErrorMessage = document.getElementById("r-errorMsg");
+const errorMessage = document.getElementById("errorMsg");
+
+
+login.classList.add("active");
+
+async function doRegister(){
+    const isEmail  = emailIsValid(rEmail.value);
+
+    if (!isEmail){
+       rErrorMessage.innerHTML = "Please enter a valid Email";
+       return
+    }
+
+    if(rConfirmPassword.value.length < 5){
+        rErrorMessage.innerHTML = "Please enter at least 5 characters for password";
+        return
+    }
+
+    if (rPassword.value !== rConfirmPassword.value){
+        rErrorMessage.innerHTML = "Pleasemake sure the password is matched";
+        return
+    }
+
+    let jsonBody = {}
+    jsonBody.email = rEmail.value;
+    jsonBody.password = rConfirmPassword.value
+    defaultFetchParam.body = JSON.stringify(jsonBody)
+
+    const response = await fetch(host+"register",defaultFetchParam)
+    const result = await response.json();
+
+    console.log("result",result);
+}
+
+async function doLogin(){
+    const isEmail  = emailIsValid(email.value);
+
+    if (!isEmail){
+        errorMessage.innerHTML = "Please enter a valid Email";
+       return
+    }
+
+    if(password.value.length < 5){
+        errorMessage.innerHTML = "Please enter at least 5 characters for password";
+        return
+    }
+
+    let jsonBody = {}
+    jsonBody.email = email.value;
+    jsonBody.password = password.value
+    defaultFetchParam.body = JSON.stringify(jsonBody)
+
+    const response = await fetch(host+"login",defaultFetchParam)
+    const result = await response.json();
+
+    console.log("result",result);
+}
+
+
+
+function swapTab(e){
+    login.classList.remove("active");
+    register.classList.remove("active");
+    forgotPassword.classList.remove("active");
+    console.log("e",e.value)
+
+    if(e.value =="loginTab"){
+        login.classList.add("active");
+
+    }else if(e.value == "registerTab"){
+        register.classList.add("active");
+    }
+
+
+}
+
+function emailIsValid (email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+</script>
+
+</html>

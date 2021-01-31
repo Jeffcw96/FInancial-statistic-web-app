@@ -55,16 +55,14 @@ func GetFinancialStatistic(w http.ResponseWriter, r *http.Request) {
 	monthlyReport := MonthlyReport{}
 	expensesInfoArr := []MonthlyExpenses{}
 	for _, monthData := range sortedMonth {
-		getAllSaving := db.Client.HGetAll("saving:" + monthData.Month).Val()
-		fmt.Println("getAllSaving", getAllSaving)
-		fmt.Println("monthData.Month", monthData.Month)
-
 		month := strconv.FormatInt(monthData.Value, 10)
-
 		if len(month) == 1 {
 			month = "0" + month
 		}
-		fmt.Println("month", month)
+		getAllSaving := db.Client.HGetAll("saving:1:" + year + "-" + month).Val()
+		fmt.Println("getAllSaving", getAllSaving)
+		fmt.Println("monthData.Month", monthData.Month)
+
 		getMonthlyExpenses := db.Client.HGetAll("expenses:1:" + year + "-" + month).Val()
 		//fmt.Println("getMonthlyExpenses", getMonthlyExpenses)
 		var totalMonthExpenses float64
@@ -82,7 +80,7 @@ func GetFinancialStatistic(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		fmt.Println(monthData.Month+" expenses >>", totalMonthExpenses)
+		//fmt.Println(monthData.Month+" expenses >>", totalMonthExpenses)
 		expensesInfo.Month = monthData.Month
 		expensesInfo.TotalExpenses = totalMonthExpenses
 		formatedSaving, _ := strconv.ParseFloat(getAllSaving["saving"], 64)

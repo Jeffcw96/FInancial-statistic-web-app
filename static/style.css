@@ -532,3 +532,43 @@ textarea {
     max-width: 60vw;
     margin:10vh auto 0 auto;
 }
+
+.auth-page{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.form-container{
+    border: 1px solid gray;
+    padding: 20px;
+    display: none;
+}
+
+.form-container.active{
+    display: block;
+}
+
+.form-container h2{
+    margin: 0;
+}
+
+.form-element {
+    margin: 15px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-btn-container{
+    text-align: right;
+}
+
+.form-btn-container button{
+    padding: 5px 15px;
+}
+
+.tab-input{
+    display: none;
+}

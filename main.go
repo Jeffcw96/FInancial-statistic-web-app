@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -16,6 +17,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
+	"github.com/practice/user"
 	"github.com/rs/cors"
 )
 
@@ -26,15 +28,18 @@ func main() {
 
 	templates = template.Must(template.ParseGlob("template/*.html"))
 	r := mux.NewRouter().StrictSlash(true)
-	r.HandleFunc("/", indexHandler).Methods("GET")
+	r.HandleFunc("/", loginPage).Methods("GET")
+	r.HandleFunc("/home", indexHandler).Methods("GET")
 	r.HandleFunc("/second", SecondFunction).Methods("GET")
-	r.HandleFunc("/addSaving", AddMonthlySaving).Methods("POST")
-	r.HandleFunc("/addExpenses", AddDailyExpenses).Methods("POST")
-	r.HandleFunc("/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")
-	r.HandleFunc("/deleteExpensesOption/{id}", cms.DeleteExpensesOption).Methods("POST")
-	r.HandleFunc("/readExpensesObject", cms.ReadExpensesObject).Methods("GET")
-	r.HandleFunc("/getFinancialStatistic/{year}", statistic.GetFinancialStatistic).Methods("GET")
-	r.HandleFunc("/generateExpensesSummary/{year}/{month}", statistic.GenerateExpensesSummary).Methods("GET")
+	r.HandleFunc("/auth/register", user.DoRegiser).Methods("POST")
+	r.HandleFunc("/auth/login", user.DoLogin).Methods("POST")
+	r.HandleFunc("/api/addSaving", AddMonthlySaving).Methods("POST")
+	r.HandleFunc("/api/addExpenses", AddDailyExpenses).Methods("POST")
+	r.HandleFunc("/api/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")
+	r.HandleFunc("/api/deleteExpensesOption/{id}", cms.DeleteExpensesOption).Methods("POST")
+	r.HandleFunc("/api/readExpensesObject", cms.ReadExpensesObject).Methods("GET")
+	r.HandleFunc("/api/getFinancialStatistic/{year}", statistic.GetFinancialStatistic).Methods("GET")
+	r.HandleFunc("/api/generateExpensesSummary/{year}/{month}", statistic.GenerateExpensesSummary).Methods("GET")
 
 	corsOpts := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},                                     //Because now we are using the same port and domain, so it does not really matter
@@ -48,46 +53,37 @@ func main() {
 	http.ListenAndServe(":8000", handler)
 }
 
+func Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestUrl := r.URL.Path //return "/createUser"
+		method := r.Method       //return "POST"
+
+		//In case if only allow POST and GET request
+		if method != "POST" && method != "GET" {
+			//Response bad request if doesn't pass the condition
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad Request"))
+			return
+		}
+
+		if strings.Contains(requestUrl, "api") {
+			fmt.Println("is API")
+
+		}
+
+		next.ServeHTTP(w, r)
+
+		fmt.Println("after api call")
+	})
+}
+
+func loginPage(w http.ResponseWriter, r *http.Request) {
+	//Call the index html template
+	templates.ExecuteTemplate(w, "login.html", nil)
+}
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-
-	// getAllMonths := db.Client.HGetAll("expenses:month").Val()
-
-	// for labelMonth, month := range getAllMonths {
-	// 	getAllDays := db.Client.HGetAll("expenses:" + labelMonth + ":all").Val()
-
-	// 	for day, _ := range getAllDays {
-	// 		dayExp := db.Client.HGetAll("expenses:" + labelMonth + ":" + day).Val()
-	// 		setHm := make(map[string]interface{})
-	// 		for expLabel, expValue := range dayExp {
-	// 			setHm[expLabel] = expValue
-	// 		}
-
-	// 		if len(month) == 1 {
-	// 			month = "0" + month
-	// 		}
-
-	// 		jsonHm, _ := json.Marshal(setHm)
-
-	// 		db.Client.HSet("expenses:1:2020-"+month, day, jsonHm)
-	// 	}
-	// }
-
-	// db.Client.Incr("expenses:1:ids")
-	// setHm := make(map[string]interface{})
-	// setOption := make(map[string]interface{})
-	// // getAllMonths := db.Client.HGetAll("expenses:month").Val()
-	// for labelMonth, month := range getAllMonths {
-	// 	setHm[labelMonth] = month
-	// }
-
-	// getAllOptions := db.Client.HGetAll("expenses:option").Val()
-	// for key, labelOption := range getAllOptions {
-	// 	setOption[key] = labelOption
-	// }
-
-	// db.Client.HMSet("expenses:1:months", setHm)
-	// db.Client.HMSet("expenses:1:options", setOption)
-
 	//Call the index html template
 	templates.ExecuteTemplate(w, "index.html", nil)
 }
@@ -102,14 +98,26 @@ func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(jsonFeed), &salary)
 	fmt.Println("salary", salary)
 
-	_, month, _ := cms.GenerateMonthAndDate()
+	year, month, _ := cms.GenerateMonthAndDate()
+	getAllMonths := db.Client.HGetAll("expenses:1:months").Val()
+	monthLabel := ""
+
+	for labelMonth, monthNum := range getAllMonths {
+		intMonthNum, _ := strconv.ParseInt(monthNum, 10, 64)
+		intMonth, _ := strconv.ParseInt(month, 10, 64)
+		diff := intMonthNum - intMonth
+
+		if diff == 0 {
+			monthLabel = labelMonth
+		}
+	}
 
 	m := make(map[string]interface{})
 	m["saving"] = salary.Saving
-	m["month"] = month
+	m["month"] = monthLabel
 	fmt.Println("m", m)
 
-	db.Client.HMSet("saving:"+month, m)
+	db.Client.HMSet("saving:1:"+year+"-"+month, m)
 
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"

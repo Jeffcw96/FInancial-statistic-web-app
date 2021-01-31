@@ -1,4 +1,5 @@
 const speed = 200;
+
 var defaultFetchParam = {
     method: 'POST',
     mode: 'cors',
@@ -12,7 +13,7 @@ var months = [];
 var expenses = [];
 var saving = [];
 
-var host = "http://localhost:8000/";
+var host = "http://localhost:8000/api/";
 //getExpensesOption();
 
 setInterval(() => {
@@ -350,23 +351,13 @@ function addExpensesOption() {
             document.querySelector("body").style.overflow = "initial";
             document.getElementById("expensesOptionModal").style.display = "none";
             editOption.click();
-            getExpensesOption();
+            ReadExpensesObject();
         })
 }
 
-function getExpensesOption() {
-    var url = host + "readExpensesObject";
 
-    fetch(url)
-        .then((response) => {
-            return response.json()
-        })
-        .then((result) => {
 
-        })
-}
-
-(async () => {
+async function ReadExpensesObject() {
     let fetchExp = await fetch(host + "readExpensesObject")
     console.log("fetchExp", fetchExp)
     let result = await fetchExp.json()
@@ -400,10 +391,10 @@ function getExpensesOption() {
         console.log("total Value", totalValue)
     }
     totalCost.innerText = totalValue;
-})()
+}
 
 function deleteExpensesOption(e) {
-
+    var addIcon = document.querySelector(".add-option");
     var optionId = e.getAttribute("optionId");
     console.log("option id", optionId);
     var url = host + "deleteExpensesOption/" + optionId;
@@ -415,8 +406,11 @@ function deleteExpensesOption(e) {
         })
         .then((result) => {
             console.log("result succesfull ?", result);
+            document.querySelector("body").style.overflow = "initial";
+            document.getElementById("expensesContainer").style.display = "none";
             document.getElementById("expensesOptionModal").style.display = "none";
-            getExpensesOption();
+            addIcon.classList.remove("block");
+            ReadExpensesObject();
         })
 
 }
@@ -437,6 +431,10 @@ function closePopUpModal() {
 function getExpensesReport(year) {
     console.log("selected year", year)
     var url = host + "getFinancialStatistic/" + year;
+    document.getElementById("canvasContainer").innerHTML = "";
+    months.length = 0;
+    expenses.length = 0;
+    saving.length = 0;
     fetch(url)
         .then((response) => {
             return response.json();
@@ -452,8 +450,6 @@ function getExpensesReport(year) {
 
         })
         .then(() => {
-            document.getElementById("canvasContainer").innerHTML = "";
-
             var salesReportCanvas = document.createElement("canvas");
             var getSalesReportCanvas = salesReportCanvas.getContext('2d');
             var salesReportChart = new Chart(getSalesReportCanvas, {
@@ -573,6 +569,7 @@ function generateExpensesSummary(month) {
 
         })
 }
+ReadExpensesObject()
 getExpensesReport("2020");
 // var options = {
 //     threshold: 1,
