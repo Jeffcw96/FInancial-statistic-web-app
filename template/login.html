@@ -140,6 +140,9 @@ async function doLogin(){
     const response = await fetch(host+"login",defaultFetchParam)
     const result = await response.json();
 
+    setCookie("token",result,1);
+    window.location.href = "/home"
+
     console.log("result",result);
 }
 
@@ -157,14 +160,18 @@ function swapTab(e){
     }else if(e.value == "registerTab"){
         register.classList.add("active");
     }
-
-
 }
 
 function emailIsValid (email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+function setCookie(cName, cValue, days) {
+    //get current date
+    var d = new Date();
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = cName + "=" + cValue + ";" + "expires=" + d.toUTCString(); + "path/"
+}
 </script>
 
 </html>

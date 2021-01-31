@@ -1,11 +1,49 @@
-const speed = 200;
+function getCookie(cName) {
+    var name = cName + "=";
+    var allCookie = document.cookie.split(';');
+    for (var i = 0; i < allCookie.length; i++) {
+        var currCookie = allCookie[i];
+        //So we need to check if the first character of the current index is empty, we need to extract out the space as we only concern for the cookie
+        while (currCookie.charAt(0) == ' ') {
+            currCookie = currCookie.substring(1);
+        }
+        if (currCookie.indexOf(name) == 0) {
+            return currCookie.substring(name.length, currCookie.length);
+        }
+    }
+    return "";
+}
 
-var defaultFetchParam = {
+const speed = 200;
+let token = ""
+function Initialization() {
+    token = getCookie("token");
+    if (!token) {
+        document.querySelector("body").innerHTML = "";
+        return
+    }
+
+}
+Initialization()
+
+
+var defaultPostParam = {
     method: 'POST',
     mode: 'cors',
     cache: 'no-cache',
     headers: {
         "Content-Type": "application/json",
+        "Authorization": token
+    },
+};
+
+var defaultGetParam = {
+    method: 'GET',
+    mode: 'cors',
+    cache: 'no-cache',
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": token
     },
 };
 
@@ -244,11 +282,10 @@ function executeUserAction(e) {
     } else if (e.getAttribute("action") == "saving") {
         var data = {}
         data.saving = parseFloat(document.getElementById("saveAmount").value);
-        defaultFetchParam.body = JSON.stringify(data)
 
         var url = host + "addSaving";
 
-        fetch(url, defaultFetchParam)
+        fetch(url, defaultPostParam)
             .then((res) => {
                 return res.json();
             })
@@ -278,10 +315,10 @@ function executeUserAction(e) {
         console.log("expenses Arr", expensesArr);
         var expenses = {};
         expenses.allExpenses = expensesArr;
-        defaultFetchParam.body = JSON.stringify(expenses)
+        defaultPostParam.body = JSON.stringify(expenses)
         var url = host + "addExpenses"
         console.table(expenses)
-        fetch(url, defaultFetchParam)
+        fetch(url, defaultPostParam)
             .then((response) => {
                 return response.json()
             })
@@ -292,7 +329,7 @@ function executeUserAction(e) {
                     document.getElementById("popUpModal").style.display = "none";
                     document.getElementById("totalCost").innerHTML = "";
                     document.getElementById("totalCost").setAttribute("data-target", "0");
-                    for (let expense of getAllExpenses) {
+                    for (let expenses of getAllExpenses) {
                         expenses.setAttribute("currentCost", "0")
                     }
                 }
@@ -339,10 +376,10 @@ function addExpensesOption() {
     expensesJson = {};
     expensesJson.name = expensesOptionInput.value;
 
-    defaultFetchParam.body = JSON.stringify(expensesJson);
+    defaultPostParam.body = JSON.stringify(expensesJson);
     var url = host + "addExpensesOption";
 
-    fetch(url, defaultFetchParam)
+    fetch(url, defaultPostParam)
         .then((response) => {
             return response.json()
         })
@@ -358,7 +395,7 @@ function addExpensesOption() {
 
 
 async function ReadExpensesObject() {
-    let fetchExp = await fetch(host + "readExpensesObject")
+    let fetchExp = await fetch(host + "readExpensesObject", defaultGetParam)
     console.log("fetchExp", fetchExp)
     let result = await fetchExp.json()
     console.log("fetchResponse", result)
@@ -398,9 +435,9 @@ function deleteExpensesOption(e) {
     var optionId = e.getAttribute("optionId");
     console.log("option id", optionId);
     var url = host + "deleteExpensesOption/" + optionId;
-    defaultFetchParam.body = JSON.stringify("");
+    defaultPostParam.body = JSON.stringify("");
 
-    fetch(url, defaultFetchParam)
+    fetch(url, defaultPostParam)
         .then((response) => {
             return response.json();
         })
@@ -435,7 +472,8 @@ function getExpensesReport(year) {
     months.length = 0;
     expenses.length = 0;
     saving.length = 0;
-    fetch(url)
+
+    fetch(url, defaultGetParam)
         .then((response) => {
             return response.json();
         })
@@ -527,7 +565,7 @@ function generateExpensesSummary(month) {
     var url = host + "generateExpensesSummary/" + year + "/" + month;
     var expensesObject = [];
     var expensesValue = [];
-    fetch(url)
+    fetch(url, defaultGetParam)
         .then((response) => {
             return response.json()
         })
@@ -570,7 +608,7 @@ function generateExpensesSummary(month) {
         })
 }
 ReadExpensesObject()
-getExpensesReport("2020");
+getExpensesReport("2021");
 // var options = {
 //     threshold: 1,
 //     rootMargin: "0px 0px -100px 0px"
@@ -585,3 +623,4 @@ getExpensesReport("2020");
 // }, options);
 
 // chartObserver.observe(document.getElementById("addSectionId"));
+

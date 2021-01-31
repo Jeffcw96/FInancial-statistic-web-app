@@ -50,7 +50,7 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	http.Handle("/", r)
 	handler := corsOpts.Handler(r)
-	http.ListenAndServe(":8000", handler)
+	http.ListenAndServe(":8000", Middleware(handler))
 }
 
 func Middleware(next http.Handler) http.Handler {
@@ -69,6 +69,36 @@ func Middleware(next http.Handler) http.Handler {
 
 		if strings.Contains(requestUrl, "api") {
 			fmt.Println("is API")
+			token := r.Header.Get("Authorization")
+
+			if token == "" {
+				w.Header().Set("Content-Type", "text/plain")
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Bad Request"))
+				return
+			}
+
+			jwtWrapper := user.JwtWrapper{
+				SecretKey: "jeffdevslife",
+				Issuer:    "AuthService",
+			}
+
+			jwtClaims := &user.JwtClaim{}
+			claims, err := jwtWrapper.ValidateToken(token)
+
+			if claims == jwtClaims {
+				w.Header().Set("Content-Type", "text/plain")
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Bad Request"))
+				return
+			}
+
+			fmt.Println("clam token err", err)
+
+			fmt.Println("id, email", claims.Id, claims.Email)
+
+			r.Header.Set("UserId", claims.Id)
+			r.Header.Set("UserEmail", claims.Email)
 
 		}
 
@@ -90,6 +120,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 //AddMonthlySaving function
 func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
+	userId := r.Header.Get("UserId")
 	jsonFeed, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("read people err: ", err)
@@ -99,7 +130,7 @@ func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("salary", salary)
 
 	year, month, _ := cms.GenerateMonthAndDate()
-	getAllMonths := db.Client.HGetAll("expenses:1:months").Val()
+	getAllMonths := db.Client.HGetAll("expenses:" + userId + ":months").Val()
 	monthLabel := ""
 
 	for labelMonth, monthNum := range getAllMonths {
@@ -117,7 +148,7 @@ func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
 	m["month"] = monthLabel
 	fmt.Println("m", m)
 
-	db.Client.HMSet("saving:1:"+year+"-"+month, m)
+	db.Client.HMSet("saving:"+userId+":"+year+"-"+month, m)
 
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"
@@ -128,7 +159,7 @@ func AddMonthlySaving(w http.ResponseWriter, r *http.Request) {
 
 //AddDailyExpenses function
 func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
-
+	userId := r.Header.Get("UserId")
 	jsonFeed, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
@@ -154,7 +185,7 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 
 	jsonHash, _ := json.Marshal(expensesHash)
 
-	db.Client.HSet("expenses:1:"+year+"-"+month, date, jsonHash)
+	db.Client.HSet("expenses:"+userId+":"+year+"-"+month, date, jsonHash)
 
 	getStatus := cms.ResponseStatus{}
 	getStatus.Status = "00"

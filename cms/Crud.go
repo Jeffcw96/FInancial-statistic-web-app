@@ -70,6 +70,7 @@ type ResponseStatus struct {
 
 func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("add expenses option")
+	userId := r.Header.Get("UserId")
 
 	jsonFeed, err := ioutil.ReadAll(r.Body)
 
@@ -82,7 +83,7 @@ func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 
 	optionId := db.Client.Incr("expenses:ids").Val()
 
-	db.Client.HSet("expenses:1:options", strconv.FormatInt(optionId, 10), optionName.Name)
+	db.Client.HSet("expenses:"+userId+":options", strconv.FormatInt(optionId, 10), optionName.Name)
 
 	response := ResponseStatus{}
 	response.Status = "00"
@@ -94,9 +95,9 @@ func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 
 func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {
 	year, month, date := GenerateMonthAndDate()
-
-	getAllExpensesOption, _ := db.Client.HGetAll("expenses:1:options").Result()
-	getTodayExpensesValue := db.Client.HGet("expenses:1:"+year+"-"+month, date).Val()
+	userId := r.Header.Get("UserId")
+	getAllExpensesOption, _ := db.Client.HGetAll("expenses:" + userId + ":options").Result()
+	getTodayExpensesValue := db.Client.HGet("expenses:"+userId+":"+year+"-"+month, date).Val()
 
 	expensesOptionArr := []ExpensesOption{}
 	for k, v := range getAllExpensesOption {
@@ -138,10 +139,10 @@ func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteExpensesOption(w http.ResponseWriter, r *http.Request) {
-
+	userId := r.Header.Get("UserId")
 	v := mux.Vars(r)
 	optionId := v["id"]
-	db.Client.HDel("expenses:1:options", optionId)
+	db.Client.HDel("expenses:"+userId+":options", optionId)
 
 	fmt.Println("optionId", optionId)
 	response := ResponseStatus{}
