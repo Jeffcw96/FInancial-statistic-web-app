@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -52,6 +53,10 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	http.Handle("/", r)
 	handler := corsOpts.Handler(r)
+
+	port := os.Getenv("PORT")
+
+	http.ListenAndServe(port, Middleware(handler))
 	http.ListenAndServe(":8000", Middleware(handler))
 }
 
