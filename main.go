@@ -11,9 +11,10 @@ import (
 	"strings"
 	"text/template"
 
-	"goAgain/cms"
-	"goAgain/db"
-	"goAgain/statistic"
+	"github.com/practice/db"
+	"github.com/practice/statistic"
+
+	"github.com/practice/cms"
 
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"

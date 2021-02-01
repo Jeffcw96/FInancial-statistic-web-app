@@ -3,12 +3,13 @@ package statistic
 import (
 	"encoding/json"
 	"fmt"
-	"goAgain/db"
 	"math"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/practice/db"
 
 	"github.com/gorilla/mux"
 )
