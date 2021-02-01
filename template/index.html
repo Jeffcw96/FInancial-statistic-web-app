@@ -18,7 +18,7 @@
             <div class="button-wrap">
                 <a class="primary-button" href="#addSectionId">ADD</a>
                 <a class="secondary-button" href="#checkSectionId">CHECK</a>
-                <a href="/second">test</a>
+                <!-- <a href="/second">test</a> -->
             </div>
         </div>
         <div class="bubble bubble-big"></div>
@@ -113,11 +113,12 @@
     </section>
     <section id="checkSectionId">
         <div class="monthly-report-container">
-            <div>
+            <div class="select-year-container">
                 <select onchange=getExpensesReport(this.value) id="selectYear">
                     <option value="2021" selected>2021</option>
                     <option value="2020">2020</option>
                 </select>
+                <span style="margin-left: 15px;">Hints: Hover and Click the points for detail statistic</span>
             </div>
             <div id="canvasContainer" style="max-height: 70vh; "></div>
            

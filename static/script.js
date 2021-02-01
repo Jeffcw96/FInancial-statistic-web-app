@@ -15,6 +15,7 @@ function getCookie(cName) {
 }
 
 const speed = 200;
+const selectYear = document.getElementById("selectYear");
 let token = ""
 function Initialization() {
     token = getCookie("token");
@@ -282,7 +283,7 @@ function executeUserAction(e) {
     } else if (e.getAttribute("action") == "saving") {
         var data = {}
         data.saving = parseFloat(document.getElementById("saveAmount").value);
-
+        defaultPostParam.body = JSON.stringify(data)
         var url = host + "addSaving";
 
         fetch(url, defaultPostParam)
@@ -294,6 +295,7 @@ function executeUserAction(e) {
                 document.getElementById("saveAmount").value = "";
                 console.log("hmmm 222");
                 document.getElementById("popUpModal").style.display = "none";
+                getExpensesReport(selectYear.value)
             })
 
     } else if (e.getAttribute("action") == "expenses") {
@@ -327,11 +329,12 @@ function executeUserAction(e) {
 
                 if (result.status == "00") {
                     document.getElementById("popUpModal").style.display = "none";
-                    document.getElementById("totalCost").innerHTML = "";
-                    document.getElementById("totalCost").setAttribute("data-target", "0");
-                    for (let expenses of getAllExpenses) {
-                        expenses.setAttribute("currentCost", "0")
-                    }
+                    // document.getElementById("totalCost").innerHTML = "";
+                    // document.getElementById("totalCost").setAttribute("data-target", "0");
+                    // for (let expenses of getAllExpenses) {
+                    //     expenses.setAttribute("currentCost", "0")
+                    // }
+                    getExpensesReport(selectYear.value)
                 }
             })
 
@@ -584,6 +587,9 @@ function generateExpensesSummary(month) {
         .then(() => {
             var expeneseSummary = document.getElementById('expeneseSummary');
             expeneseSummary.innerHTML = "";
+            const summaryHeader = document.createElement("h2");
+            summaryHeader.classList.add("expenses-summary-header")
+            summaryHeader.innerHTML = "Expenses Summary"
             var summaryCanvas = document.createElement('canvas');
             var ctx = summaryCanvas.getContext('2d');
             var myChart = new Chart(ctx, {
@@ -602,7 +608,7 @@ function generateExpensesSummary(month) {
                     }]
                 }
             });
-
+            expeneseSummary.appendChild(summaryHeader);
             expeneseSummary.appendChild(summaryCanvas);
 
         })

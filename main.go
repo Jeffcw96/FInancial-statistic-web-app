@@ -33,6 +33,7 @@ func main() {
 	r.HandleFunc("/second", SecondFunction).Methods("GET")
 	r.HandleFunc("/auth/register", user.DoRegiser).Methods("POST")
 	r.HandleFunc("/auth/login", user.DoLogin).Methods("POST")
+	r.HandleFunc("/auth/forgotPassword", user.ForgotPassword).Methods("POST")
 	r.HandleFunc("/api/addSaving", AddMonthlySaving).Methods("POST")
 	r.HandleFunc("/api/addExpenses", AddDailyExpenses).Methods("POST")
 	r.HandleFunc("/api/addExpensesOption", cms.CreateNewExpensesObject).Methods("POST")

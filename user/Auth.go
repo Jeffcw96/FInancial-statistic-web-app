@@ -33,6 +33,40 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type Email struct {
+	Sender   string `json:"sender"`
+	Receiver string `json:"receiver"`
+	Address  string `json:"address"`
+	Subject  string `json:"subject"`
+	Mime     string `json:"mime"`
+	Body     string `json:"body"`
+	Host     string `json:"host"`
+}
+
+func (email *Email) defaults() {
+	// setting default values
+	// if no values present
+	if email.Sender == "" {
+		email.Sender = "jeffdevslife@gmail.com"
+	}
+
+	if email.Address == "" {
+		email.Address = "smtp.gmail.com:587"
+	}
+
+	if email.Subject == "" {
+		email.Subject = "Reset Your Password"
+	}
+
+	if email.Mime == "" {
+		email.Mime = "MIME-version: 1.0; \nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	}
+
+	if email.Host == "" {
+		email.Host = "smtp.gmail.com"
+	}
+}
+
 func DoRegiser(w http.ResponseWriter, r *http.Request) {
 
 	jsonFeed, _ := ioutil.ReadAll(r.Body)
@@ -133,6 +167,38 @@ func DoLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(token)
+}
+
+func ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	jsonFeed, _ := ioutil.ReadAll(r.Body)
+	user := User{}
+	json.Unmarshal([]byte(jsonFeed), &user)
+	email := Email{}
+	email.defaults()
+	senderList := []string{}
+	senderList = append(senderList, user.Email)
+
+	body := `<html>
+				<h1>Reset your password</h1>
+				<div>
+					<p>Please click <a href="https://uigradients.com/#DirtyFog">here</a> to reset your password</p>
+				</div>
+			</html>`
+
+	message := []byte(email.Subject + email.Mime + body)
+	fmt.Println("message", message)
+	// auth := smtp.PlainAuth("", email.Sender, "", email.Host)
+
+	// err := smtp.SendMail(email.Address, auth, email.Sender, senderList, message)
+	// fmt.Println("err", err)
+
+	response := cms.ResponseStatus{}
+	response.Status = "00"
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
 }
 
 func hashAndSalt(pwd []byte) string {

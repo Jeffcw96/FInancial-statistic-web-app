@@ -8,11 +8,12 @@
     <title>Login</title>
 </head>
 <body>
-    <div class="auth-page">
+    <div class="auth-page login-background">
         <div class="main">
             <div style="position: relative;">
                 <label class="tab-label active">Login <input type="radio" name="authTab" id="loginTab" class="tab-input" value="loginTab" onclick="swapTab(this)"></label>
                 <label class="tab-label" style="left:70px">Register <input type="radio" name="authTab" id="registerTab" class="tab-input" value="registerTab" onclick="swapTab(this)"></label>
+                <!-- <label class="tab-label" style="left:158px">Forgot Password <input type="radio" name="authTab" id="forgotTab" class="tab-input" value="forgotTab" onclick="swapTab(this)"></label> -->
             </div>
             <div id="login" class="form-container">
                 <h2>Login</h2>
@@ -55,11 +56,14 @@
             <div id="forgotPassword" class="form-container">
                 <h2>Forgot Password</h2>
                 <div class="form-element">
-                    <label>Id:</label>
+                    <label>Email:</label>
                     <input type="text" id="f-email">
                 </div>
+                <div class="form-element">
+                    <p id="f-errorMsg"></p>
+                </div>
                 <div class="form-btn-container">
-                    <button>Submit</button>
+                    <button onclick="doForgotPassword()">Submit</button>
                 </div>
             </div>
         </div>
@@ -87,10 +91,23 @@ const password = document.getElementById("password");
 const rPassword = document.getElementById("r-password");
 const rConfirmPassword = document.getElementById("r-cpassword");
 const rErrorMessage = document.getElementById("r-errorMsg");
+const fErrorMessage = document.getElementById("f-errorMsg");
 const errorMessage = document.getElementById("errorMsg");
 
 
 login.classList.add("active");
+
+document.addEventListener("keypress",(e =>{
+    if(e.keyCode === 13){
+        if(login.classList.contains("active")){
+            doLogin();
+
+        }else if(register.classList.contains("active")){
+            doRegister();
+        }
+    }
+}))
+
 
 async function doRegister(){
     const isEmail  = emailIsValid(rEmail.value);
@@ -118,6 +135,13 @@ async function doRegister(){
     const response = await fetch(host+"register",defaultFetchParam)
     const result = await response.json();
 
+    if (result.status === "00"){
+        rErrorMessage.classList.add("success");
+        rErrorMessage.innerHTML = "Registration successful";
+        rEmail.value = "";
+        rPassword.value = "";
+        rConfirmPassword.value = "";
+    }
     console.log("result",result);
 }
 
@@ -154,6 +178,7 @@ function swapTab(e){
     login.classList.remove("active");
     register.classList.remove("active");
     forgotPassword.classList.remove("active");
+    rErrorMessage.classList.remove("success");
     console.log("e",e.value)
     tabInputs = document.querySelectorAll(".tab-input");
 
@@ -168,6 +193,9 @@ function swapTab(e){
 
     }else if(e.value == "registerTab"){
         register.classList.add("active");
+
+    }else if(e.value == "forgotTab"){
+        forgotPassword.classList.add("active");
     }
 }
 
@@ -181,6 +209,29 @@ function setCookie(cName, cValue, days) {
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
     document.cookie = cName + "=" + cValue + ";" + "expires=" + d.toUTCString(); + "path/"
 }
+
+async function doForgotPassword(){
+    const isEmail  = emailIsValid(fEmail.value);
+
+    if (!isEmail){
+        fErrorMessage.innerHTML = "Please enter a valid Email";
+       return
+    }
+
+    let jsonBody = {}
+    jsonBody.email = email.value;
+    defaultFetchParam.body = JSON.stringify(jsonBody)
+
+    const response = await fetch(host+"forgotPassword",defaultFetchParam)
+    const result = await response.json();
+
+    if (result.status == "00"){
+        fErrorMessage.innerHTML = "Please check your email address for password reset";
+    }
+
+}
+
+
 </script>
 
 </html>

@@ -31,10 +31,10 @@ type AllExpensesOption struct {
 }
 
 type ExpensesOption struct {
-	Name          string `json:"name"`
-	Id            int32  `json:"id"`
-	CurrentValue  string `json:"currentValue"`
-	CurrentRemark string `json:"currentRemark"`
+	Name          string  `json:"name"`
+	Id            int32   `json:"id"`
+	CurrentValue  float64 `json:"currentValue"`
+	CurrentRemark string  `json:"currentRemark"`
 }
 
 //Salary struct

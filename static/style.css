@@ -545,6 +545,7 @@ textarea {
     border: 1px solid gray;
     padding: 20px;
     display: none;
+    min-width: 500px;
 }
 
 .form-container.active{
@@ -561,12 +562,25 @@ textarea {
     justify-content: space-between;
 }
 
+.form-element input{
+    margin-left: 25px;
+    width: 350px;
+}
+
 .form-btn-container{
     text-align: right;
 }
 
 .form-btn-container button{
-    padding: 5px 15px;
+    padding: 10px 35px;
+    font-size: 1rem;
+    /* font-weight: bold; */
+    background: #c2e0ff;
+    outline: none;
+    border: 1px solid gray;
+    cursor: pointer;
+    border-radius: 10px;
+    color: black;
 }
 
 .tab-input{
@@ -578,9 +592,66 @@ textarea {
     padding: 15px;
     position: absolute;
     top: -50px;
+    cursor:pointer;
+    background: white
 }
 
 
 .tab-label.active{
     border-bottom: 1px solid white;
+}
+
+.login-background {
+    background: linear-gradient(270deg, #b993d6, #8ca6db);
+    background-size: 400% 400%;
+    -webkit-animation: AuthAnimation 20s ease infinite;
+    -moz-animation: AuthAnimation 20s ease infinite;
+    animation: AuthAnimation 20s ease infinite;
+}
+
+@-webkit-keyframes AuthAnimation {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 51%}
+    100%{background-position:0% 50%}
+}
+@-moz-keyframes AuthAnimation {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 51%}
+    100%{background-position:0% 50%}
+}
+@keyframes AuthAnimation {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 51%}
+    100%{background-position:0% 50%}
+}
+
+.main{
+    background: white;
+}
+
+#r-errorMsg.success{
+    color: #61e461;
+    font-weight: bold;
+}
+
+footer a:visited{
+    color: #000;
+}
+
+footer{
+    margin:25px 0;
+    text-align: center;
+}
+
+.select-year-container select{
+    width: 100px;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.expenses-summary-header{
+    text-align: center;
+    margin: 15px 0;
 }
