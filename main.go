@@ -57,7 +57,6 @@ func main() {
 	port := os.Getenv("PORT")
 
 	http.ListenAndServe(port, Middleware(handler))
-	http.ListenAndServe(":8000", Middleware(handler))
 }
 
 func Middleware(next http.Handler) http.Handler {
