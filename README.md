@@ -22,7 +22,8 @@ Click the point from the chart to see details data as shown in next photo
 ![expenses data breakdown](/static/demo_image/breakDownExpenses.JPG)
 
 
-
+## Demo at
+https://jeff-finance-app.herokuapp.com/
 
 
 
