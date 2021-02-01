@@ -53,10 +53,7 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	http.Handle("/", r)
 	handler := corsOpts.Handler(r)
-
-	port := os.Getenv("PORT")
-
-	http.ListenAndServe(port, Middleware(handler))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), Middleware(handler)))
 }
 
 func Middleware(next http.Handler) http.Handler {
