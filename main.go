@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -53,8 +54,8 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	http.Handle("/", r)
 	handler := corsOpts.Handler(r)
-	// log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), Middleware(handler)))
-	log.Fatal(http.ListenAndServe(":8000", Middleware(handler)))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), Middleware(handler)))
+	//log.Fatal(http.ListenAndServe(":8000", Middleware(handler)))
 }
 
 func Middleware(next http.Handler) http.Handler {
