@@ -82,16 +82,51 @@ func CreateNewExpensesObject(w http.ResponseWriter, r *http.Request) {
 	optionName := ExpensesOption{}
 	json.Unmarshal([]byte(jsonFeed), &optionName)
 
-	optionId := db.Client.Incr("expenses:ids").Val()
+	optionId := db.Client.Incr("expenses:" + userId + ":ids").Val()
 
 	db.Client.HSet("expenses:"+userId+":options", strconv.FormatInt(optionId, 10), optionName.Name)
 
-	response := ResponseStatus{}
-	response.Status = "00"
+	year, month, date := GenerateMonthAndDate()
+	getAllExpensesOption, _ := db.Client.HGetAll("expenses:" + userId + ":options").Result()
+	getTodayExpensesValue := db.Client.HGet("expenses:"+userId+":"+year+"-"+month, date).Val()
 
+	expensesOptionArr := []ExpensesOption{}
+	for k, v := range getAllExpensesOption {
+		//fmt.Println("expenses option info", v)
+
+		hm := make(map[string]interface{})
+
+		hm["id"], _ = strconv.ParseInt(k, 10, 32)
+		hm["name"] = v
+
+		expenses := make(map[string]interface{})
+		json.Unmarshal([]byte(getTodayExpensesValue), &expenses)
+
+		for object, val := range expenses {
+			//fmt.Println("expensesVal", val)
+			//fmt.Println("object", object)
+			if strings.ToLower(object) == strings.ToLower(v) {
+				//fmt.Println("FOund !!!")
+				hm["currentValue"] = val
+				hm["currentRemark"] = expenses["R-"+strings.ToLower(object)]
+			}
+		}
+		expensesOption := ExpensesOption{}
+		_ = mapstructure.Decode(hm, &expensesOption)
+		fmt.Println("&expensesOption", &expensesOption)
+		expensesOptionArr = append(expensesOptionArr, expensesOption)
+	}
+
+	sort.SliceStable(expensesOptionArr, func(i, j int) bool {
+		return expensesOptionArr[i].Id < expensesOptionArr[j].Id
+	})
+
+	fmt.Println("expenses Option Arr", expensesOptionArr)
+	allExpenses := AllExpensesOption{}
+	allExpenses.Expenses = expensesOptionArr
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(expensesOptionArr)
 }
 
 func ReadExpensesObject(w http.ResponseWriter, r *http.Request) {

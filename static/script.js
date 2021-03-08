@@ -52,7 +52,8 @@ var months = [];
 var expenses = [];
 var saving = [];
 
-var host = "https://jeff-finance-app.herokuapp.com/api/";
+// var host = "https://jeff-finance-app.herokuapp.com/api/";
+var host = "http://localhost:8000/api/"
 //getExpensesOption();
 
 setInterval(() => {
@@ -315,27 +316,30 @@ function executeUserAction(e) {
         }
 
         console.log("expenses Arr", expensesArr);
-        var expenses = {};
-        expenses.allExpenses = expensesArr;
-        defaultPostParam.body = JSON.stringify(expenses)
+        var expensesJson = {};
+        expensesJson.allExpenses = expensesArr;
+        defaultPostParam.body = JSON.stringify(expensesJson)
         var url = host + "addExpenses"
-        console.table(expenses)
+
+        document.getElementById("canvasContainer").innerHTML = "";
+        months.length = 0;
+        expenses.length = 0;
+        saving.length = 0;
         fetch(url, defaultPostParam)
             .then((response) => {
                 return response.json()
             })
             .then((result) => {
-                console.log("result 123", result)
-
-                if (result.status == "00") {
-                    document.getElementById("popUpModal").style.display = "none";
-                    // document.getElementById("totalCost").innerHTML = "";
-                    // document.getElementById("totalCost").setAttribute("data-target", "0");
-                    // for (let expenses of getAllExpenses) {
-                    //     expenses.setAttribute("currentCost", "0")
-                    // }
-                    getExpensesReport(selectYear.value)
+                console.log("statistic data", result);
+                for (var i = 0; i < result.report.length; i++) {
+                    months.push(result.report[i].month);
+                    expenses.push(result.report[i].totalExpenses);
+                    saving.push(result.report[i].saving);
                 }
+            })
+            .then(() => {
+                document.getElementById("popUpModal").style.display = "none";
+                renderReportChart()
             })
 
     }
@@ -391,7 +395,7 @@ function addExpensesOption() {
             document.querySelector("body").style.overflow = "initial";
             document.getElementById("expensesOptionModal").style.display = "none";
             editOption.click();
-            ReadExpensesObject();
+            renderExpenses(result)
         })
 }
 
@@ -401,7 +405,11 @@ async function ReadExpensesObject() {
     let fetchExp = await fetch(host + "readExpensesObject", defaultGetParam)
     console.log("fetchExp", fetchExp)
     let result = await fetchExp.json()
-    console.log("fetchResponse", result)
+    renderExpenses(result)
+
+}
+
+function renderExpenses(result) {
     var expensesOption = document.getElementById("expensesOption");
     var totalCost = document.getElementById("totalCost");
     totalCost.innerHTML = "";
@@ -432,6 +440,8 @@ async function ReadExpensesObject() {
     }
     totalCost.innerText = totalValue;
 }
+
+
 
 function deleteExpensesOption(e) {
     var addIcon = document.querySelector(".add-option");
@@ -483,82 +493,14 @@ function getExpensesReport(year) {
         .then((result) => {
             console.log("statistic data", result);
             for (var i = 0; i < result.report.length; i++) {
-
                 months.push(result.report[i].month);
                 expenses.push(result.report[i].totalExpenses);
                 saving.push(result.report[i].saving);
             }
-
         })
         .then(() => {
-            var salesReportCanvas = document.createElement("canvas");
-            var getSalesReportCanvas = salesReportCanvas.getContext('2d');
-            var salesReportChart = new Chart(getSalesReportCanvas, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Saving',
-                        data: saving,
-                        fill: false,
-                        borderColor: "#4DFF33",
-                        backgroundColor: "#2EFF0F"
-
-                    }, {
-                        label: 'Expenses',
-                        data: expenses,
-                        fill: false,
-                        borderColor: "#FF2C0F",
-                        backgroundColor: "#FF1F00"
-                    }],
-                    labels: months
-                },
-                options: {
-                    scales: {
-                        xAxes: [{
-                            display: true,
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Month'
-                            }
-                        }],
-                        yAxes: [{
-                            display: true,
-                            scaleLabel: {
-                                display: true,
-                                labelString: '$$'
-                            }
-                        }]
-                    },
-                    title: {
-                        display: true,
-                        text: 'Monthly Money$$ Statistic',
-                        fontSize: 16
-                    }
-                }
-            });
-            salesReportCanvas.style.maxHeight = "70vh";
-            salesReportCanvas.onclick = () => {
-                var activePoint = salesReportChart.getElementAtEvent(event);
-                console.log(event);
-                console.log("active point", activePoint);
-
-                // make sure click was on an actual point
-                if (activePoint.length > 0) {
-                    var clickedDatasetIndex = activePoint[0]._datasetIndex;
-                    var clickedElementindex = activePoint[0]._index;
-                    var label = salesReportChart.data.labels[clickedElementindex];
-                    var value = salesReportChart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
-                    var selectedMonth = salesReportChart.data.labels[clickedElementindex];
-
-                    console.log("mixedChart.data", salesReportChart.data);
-                    console.log("category >> ", salesReportChart.data.datasets[clickedDatasetIndex].label)
-
-                    generateExpensesSummary(selectedMonth);
-                }
-            };
-            document.getElementById("canvasContainer").appendChild(salesReportCanvas);
+            renderReportChart()
         })
-
 }
 
 
@@ -612,6 +554,75 @@ function generateExpensesSummary(month) {
             expeneseSummary.appendChild(summaryCanvas);
 
         })
+}
+
+function renderReportChart() {
+    var salesReportCanvas = document.createElement("canvas");
+    var getSalesReportCanvas = salesReportCanvas.getContext('2d');
+    var salesReportChart = new Chart(getSalesReportCanvas, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Saving',
+                data: saving,
+                fill: false,
+                borderColor: "#4DFF33",
+                backgroundColor: "#2EFF0F"
+
+            }, {
+                label: 'Expenses',
+                data: expenses,
+                fill: false,
+                borderColor: "#FF2C0F",
+                backgroundColor: "#FF1F00"
+            }],
+            labels: months
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Month'
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: '$$'
+                    }
+                }]
+            },
+            title: {
+                display: true,
+                text: 'Monthly Money$$ Statistic',
+                fontSize: 16
+            }
+        }
+    });
+    salesReportCanvas.style.maxHeight = "70vh";
+    salesReportCanvas.onclick = () => {
+        var activePoint = salesReportChart.getElementAtEvent(event);
+        console.log(event);
+        console.log("active point", activePoint);
+
+        // make sure click was on an actual point
+        if (activePoint.length > 0) {
+            var clickedDatasetIndex = activePoint[0]._datasetIndex;
+            var clickedElementindex = activePoint[0]._index;
+            var label = salesReportChart.data.labels[clickedElementindex];
+            var value = salesReportChart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
+            var selectedMonth = salesReportChart.data.labels[clickedElementindex];
+
+            console.log("mixedChart.data", salesReportChart.data);
+            console.log("category >> ", salesReportChart.data.datasets[clickedDatasetIndex].label)
+
+            generateExpensesSummary(selectedMonth);
+        }
+    };
+    document.getElementById("canvasContainer").appendChild(salesReportCanvas);
 }
 ReadExpensesObject()
 getExpensesReport("2021");

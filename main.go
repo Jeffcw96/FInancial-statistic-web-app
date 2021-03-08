@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -53,7 +53,8 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	http.Handle("/", r)
 	handler := corsOpts.Handler(r)
-	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), Middleware(handler)))
+	// log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), Middleware(handler)))
+	log.Fatal(http.ListenAndServe(":8000", Middleware(handler)))
 }
 
 func Middleware(next http.Handler) http.Handler {
@@ -189,12 +190,63 @@ func AddDailyExpenses(w http.ResponseWriter, r *http.Request) {
 	jsonHash, _ := json.Marshal(expensesHash)
 
 	db.Client.HSet("expenses:"+userId+":"+year+"-"+month, date, jsonHash)
+	getAllMonth := db.Client.HGetAll("expenses:" + userId + ":months").Val()
+	fmt.Println(getAllMonth)
+	sortedMonth := []statistic.Month{}
 
-	getStatus := cms.ResponseStatus{}
-	getStatus.Status = "00"
+	for month, value := range getAllMonth {
+		monthStruct := statistic.Month{}
+		monthStruct.Month = month
+
+		intMonth, _ := strconv.ParseInt(value, 10, 64)
+		monthStruct.Value = intMonth
+
+		sortedMonth = append(sortedMonth, monthStruct)
+	}
+	sort.Slice(sortedMonth, func(i, j int) bool { return sortedMonth[i].Value < sortedMonth[j].Value })
+	fmt.Println("sortedMonth", sortedMonth)
+
+	monthlyReport := statistic.MonthlyReport{}
+	expensesInfoArr := []statistic.MonthlyExpenses{}
+	for _, monthData := range sortedMonth {
+		month := strconv.FormatInt(monthData.Value, 10)
+		if len(month) == 1 {
+			month = "0" + month
+		}
+		getAllSaving := db.Client.HGetAll("saving:" + userId + ":" + year + "-" + month).Val()
+		fmt.Println("getAllSaving", getAllSaving)
+		fmt.Println("monthData.Month", monthData.Month)
+
+		getMonthlyExpenses := db.Client.HGetAll("expenses:" + userId + ":" + year + "-" + month).Val()
+		//fmt.Println("getMonthlyExpenses", getMonthlyExpenses)
+		var totalMonthExpenses float64
+		expensesInfo := statistic.MonthlyExpenses{}
+
+		for _, expenses := range getMonthlyExpenses {
+			expensesMap := make(map[string]interface{})
+			json.Unmarshal([]byte(expenses), &expensesMap)
+
+			for object, value := range expensesMap {
+				if !strings.Contains(object, "R-") {
+					stringExp := fmt.Sprintf("%v", value)
+					floatExpense, _ := strconv.ParseFloat(stringExp, 64)
+					totalMonthExpenses += floatExpense
+				}
+			}
+		}
+		//fmt.Println(monthData.Month+" expenses >>", totalMonthExpenses)
+		expensesInfo.Month = monthData.Month
+		expensesInfo.TotalExpenses = totalMonthExpenses
+		formatedSaving, _ := strconv.ParseFloat(getAllSaving["saving"], 64)
+		expensesInfo.Saving = formatedSaving
+		expensesInfoArr = append(expensesInfoArr, expensesInfo)
+	}
+	monthlyReport.Report = expensesInfoArr
+
 	w.Header().Set("Content-type", "application/json; charset=UTF-8")
-	w.WriteHeader((http.StatusOK))
-	json.NewEncoder(w).Encode(getStatus)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(monthlyReport)
+
 }
 
 func SecondFunction(w http.ResponseWriter, r *http.Request) {
