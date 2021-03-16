@@ -79,8 +79,8 @@ var defaultFetchParam = {
     },
 };
 
-var host = "https://jeff-finance-app.herokuapp.com/auth/";
-// var host = "http://localhost:8000/auth/"
+// var host = "https://jeff-finance-app.herokuapp.com/auth/";
+var host = "http://localhost:8000/auth/"
 
 const login = document.getElementById("login");
 const register = document.getElementById("register");
@@ -147,30 +147,40 @@ async function doRegister(){
 }
 
 async function doLogin(){
-    const isEmail  = emailIsValid(email.value);
+    try {
+        const isEmail  = emailIsValid(email.value);
 
-    if (!isEmail){
-        errorMessage.innerHTML = "Please enter a valid Email";
-       return
-    }
-
-    if(password.value.length < 5){
-        errorMessage.innerHTML = "Please enter at least 5 characters for password";
+        if (!isEmail){
+            errorMessage.innerHTML = "Please enter a valid Email";
         return
+        }
+
+        if(password.value.length < 5){
+            errorMessage.innerHTML = "Please enter at least 5 characters for password";
+            return
+        }
+
+        let jsonBody = {}
+        jsonBody.email = email.value;
+        jsonBody.password = password.value
+        defaultFetchParam.body = JSON.stringify(jsonBody)
+
+        const response = await fetch(host+"login",defaultFetchParam)
+        const result = await response.json();
+
+        
+        if(response.status === 200){
+            setCookie("token",result,1);
+            window.location.href = "/home"
+        }
+
+
+
+
+    } catch (error) {
+        console.error(error.message)
     }
 
-    let jsonBody = {}
-    jsonBody.email = email.value;
-    jsonBody.password = password.value
-    defaultFetchParam.body = JSON.stringify(jsonBody)
-
-    const response = await fetch(host+"login",defaultFetchParam)
-    const result = await response.json();
-
-    setCookie("token",result,1);
-    window.location.href = "/home"
-
-    console.log("result",result);
 }
 
 

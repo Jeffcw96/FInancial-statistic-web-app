@@ -655,3 +655,89 @@ footer{
     text-align: center;
     margin: 15px 0;
 }
+
+.submitExpensesModal{
+    width:50%;
+    margin:20% auto 0;
+}
+
+#canvasContainer{
+    max-height: 70vh;
+}
+
+
+@media only screen and (max-width: 600px) {
+    .expenses-summary{
+        max-width: 90%;
+    }
+
+    #canvasContainer{
+        max-height: 100vh;
+    }
+    .auth-page{
+        align-items: initial;
+        padding: 0 10px;
+    }
+
+    .form-container{
+        min-width: initial;
+    }
+
+    .form-element label{
+        width: 30%;
+    }
+
+    .form-element input{
+        width: 70%;
+    }
+    
+    .button-wrap{
+        top: initial;
+        bottom: 25%;
+        display: flex;
+        justify-content: space-between;
+        width: 85%;
+    }
+
+    .primary-button, .secondary-button{
+        margin: 0;
+    }
+    
+    .addSection{
+        padding: 50px 5px;
+    }
+
+    .time, .container-wrap{
+        display: block;
+    }
+
+    .container{
+        width: 90%;
+    }
+
+    .expenses-option-container{
+        margin: 0 auto;
+        width: 75%;
+    }
+
+    .save-container{
+        margin-bottom: 55px;
+    }
+
+    .key-in-value{
+        right: initial;
+    }
+
+    .monthly-report-container{
+        max-width: 95%;
+    }
+
+    .submitExpensesModal,.expenses-modal-content{
+        width: 95%;
+    }
+    
+    .bubble{
+        border-color: gray;
+    }
+}
+

@@ -52,8 +52,8 @@ var months = [];
 var expenses = [];
 var saving = [];
 
-var host = "https://jeff-finance-app.herokuapp.com/api/";
-// var host = "http://localhost:8000/api/"
+// var host = "https://jeff-finance-app.herokuapp.com/api/";
+var host = "http://localhost:8000/api/"
 //getExpensesOption();
 
 setInterval(() => {
